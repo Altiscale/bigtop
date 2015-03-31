@@ -26,21 +26,21 @@ import org.apache.bigtop.itest.junit.OrderedParameterized
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized.Parameters
 import org.junit.experimental.categories.Category;
-import org.apache.bigtop.itest.interfaces.NormalTests;
+import org.apache.bigtop.itest.interfaces.LongRunTests;
 
-@Category ( NormalTests.class )
 @RunWith(OrderedParameterized.class)
-public class TestHiveSmokeBulk {
+@Category ( LongRunTests.class )
+public class TestHiveSmokeBulkLongRunning {
   private static String test_include =
-    System.getProperty("org.apache.bigtop.itest.hivesmoke.TestHiveSmokeBulk.test_include");
+    System.getProperty("org.apache.bigtop.itest.hivesmoke.TestHiveSmokeBulkLongRunning.test_include");
   private static String test_exclude =
-    System.getProperty("org.apache.bigtop.itest.hivesmoke.TestHiveSmokeBulk.test_exclude");
+    System.getProperty("org.apache.bigtop.itest.hivesmoke.TestHiveSmokeBulkLongRunning.test_exclude");
   static Shell sh = new Shell("/bin/bash -s");
-  static HiveBulkScriptExecutor scripts = new HiveBulkScriptExecutor("scripts/ql");
+  static HiveBulkScriptExecutor scripts = new HiveBulkScriptExecutor("scripts/ql_longrun");
 
   private String test;
 
-  public TestHiveSmokeBulk(String t) {
+  public TestHiveSmokeBulkLongRunning(String t) {
     test = t;
   }
 

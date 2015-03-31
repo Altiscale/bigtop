@@ -30,10 +30,14 @@ import org.apache.bigtop.itest.JarContent
 
 // TODO: we have to stub it for 0.20.2 release, once we move to 0.21+ this can go
 // import org.apache.hadoop.hdfs.DFSConfigKeys
+import org.junit.experimental.categories.Category;
+import org.apache.bigtop.itest.interfaces.EssentialTests;
+
 class DFSConfigKeys {
   static public final FS_DEFAULT_NAME_KEY = "fs.defaultFS";
 }
 
+@Category ( EssentialTests.class )
 class TestFlumeSmoke {
  //private static String tmp = "TestFlumeSmoke-${(new Date().getTime())}";
   //private static String nn = (new Configuration()).get(DFSConfigKeys.FS_DEFAULT_NAME_KEY);

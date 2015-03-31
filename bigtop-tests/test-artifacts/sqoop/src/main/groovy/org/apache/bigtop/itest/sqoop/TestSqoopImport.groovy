@@ -39,7 +39,11 @@ import org.apache.sqoop.model.MConnection
 import org.apache.sqoop.model.MFormList
 import org.apache.sqoop.model.MJob
 import org.apache.sqoop.model.MSubmission;
+import org.junit.experimental.categories.Category;
+import org.apache.bigtop.itest.interfaces.EssentialTests;
+import org.apache.bigtop.itest.interfaces.NormalTests;
 
+@Category ( NormalTests.class )
 class TestSqoopImport {
   private static String mysql_user =
     System.getenv("MYSQL_USER");
@@ -235,6 +239,7 @@ class TestSqoopImport {
 
 
 
+@Category ( EssentialTests.class )
   @Test
   public void testIntegerImport() {
     String tableName = "t_int";
@@ -259,6 +264,7 @@ class TestSqoopImport {
         0, sh.exec("diff -u $DATA_DIR/sqoop-t_fp.out t_fp.out").getRet());
   }
 
+@Category ( EssentialTests.class )
   @Test
   public void testDateTimeImport() {
     String tableName = "t_date";
@@ -271,6 +277,7 @@ class TestSqoopImport {
         0, sh.exec("diff -u $DATA_DIR/sqoop-t_date.out t_date.out").getRet());
   }
 
+@Category ( EssentialTests.class )
   @Test
   public void testStringImport() {
     String tableName = "t_string";

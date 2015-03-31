@@ -33,13 +33,13 @@ import static org.apache.bigtop.itest.LogErrorsUtils.logError
 import org.apache.bigtop.itest.junit.OrderedParameterized
 import org.junit.runners.Parameterized.Parameters
 import org.junit.runner.RunWith
-import org.junit.experimental.categories.Category;
-import org.apache.bigtop.itest.interfaces.NormalTests;
+import org.junit.experimental.categories.Category
+import org.apache.bigtop.itest.interfaces.EssentialTests
 
-@Category ( NormalTests.class )
+@Category ( EssentialTests.class )
 @RunWith(OrderedParameterized.class)
-class TestHadoopExamples {
-  static private Log LOG = LogFactory.getLog(TestHadoopExamples.class);
+class TestHadoopExamplesEssential {
+  static private Log LOG = LogFactory.getLog(TestHadoopExamplesEssential.class);
 
   private static final String YARN_EXAMPLES = System.getenv('YARN_EXAMPLES');  
   private static final String HADOOP_CONF_DIR = System.getenv('HADOOP_CONF_DIR');
@@ -68,7 +68,7 @@ class TestHadoopExamples {
   @BeforeClass
   static void setUp() {
     conf = new Configuration();
-    TestUtils.unpackTestResources(TestHadoopExamples.class, EXAMPLES, null, EXAMPLES_OUT);
+    TestUtils.unpackTestResources(TestHadoopExamplesEssential.class, EXAMPLES, null, EXAMPLES_OUT);
   }
 
   static long terasortid = System.currentTimeMillis();
@@ -78,15 +78,8 @@ class TestHadoopExamples {
   
   static Map examples =
     [
-        teragen           :"${terasort_rows} teragen${terasortid}",
-        terasort          :"teragen${terasortid} terasort${terasortid}",
-        teravalidate      :"terasort${terasortid} tervalidate${terasortid}",
-        multifilewc       :"$EXAMPLES/text $EXAMPLES_OUT/multifilewc",
-        aggregatewordcount:"$EXAMPLES/text $EXAMPLES_OUT/aggregatewordcount 2 textinputformat",
-        aggregatewordhist :"$EXAMPLES/text $EXAMPLES_OUT/aggregatewordhist 2 textinputformat",
-        grep              :"$EXAMPLES/text $EXAMPLES_OUT/grep '[Cc]uriouser'",
-        secondarysort     :"$EXAMPLES/ints $EXAMPLES_OUT/secondarysort",
-        randomtextwriter  :"-D $RANDOMTEXTWRITER_TOTALBYTES=1073741824 $EXAMPLES_OUT/randomtextwriter"
+        pi                :'2 1000',
+        wordcount         :"$EXAMPLES/text $EXAMPLES_OUT/wordcount"
     ];
 
   private String testName;
@@ -100,7 +93,7 @@ class TestHadoopExamples {
     return res;
   }
 
-  public TestHadoopExamples(String name, String args) {
+  public TestHadoopExamplesEssential(String name, String args) {
     testName = name;
     testArgs = args;
     testJar = HADOOP_EXAMPLES_JAR;

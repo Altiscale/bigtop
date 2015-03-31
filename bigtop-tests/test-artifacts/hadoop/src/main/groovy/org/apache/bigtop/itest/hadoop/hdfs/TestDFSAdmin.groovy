@@ -26,6 +26,9 @@ import org.junit.Test;
 import static org.apache.bigtop.itest.LogErrorsUtils.logError;
 import org.apache.bigtop.itest.JarContent;
 import org.apache.bigtop.itest.shell.Shell;
+import org.junit.experimental.categories.Category;
+import org.apache.bigtop.itest.interfaces.EssentialTests;
+import org.apache.bigtop.itest.interfaces.NormalTests;
 
 public class TestDFSAdmin {
  
@@ -45,6 +48,7 @@ public class TestDFSAdmin {
   public static void tearDown() {
   }
 
+@Category ( EssentialTests.class )
   @Test
   public void testDFSbasic() { 
     // report
@@ -68,6 +72,7 @@ public class TestDFSAdmin {
     assertTrue("-metasave failed", shHDFS.getRet() == 0); 
   }
 
+@Category ( EssentialTests.class )
   @Test
   public void testDFSsafemode() {
     // safemode
@@ -86,6 +91,7 @@ public class TestDFSAdmin {
     assertTrue("-safemode leave failed", shHDFS.getRet() == 0); 
   }
 
+@Category ( NormalTests.class )
   @Test
   public void testDFSnamespace() {
     // saveNamespace
@@ -98,6 +104,7 @@ public class TestDFSAdmin {
     assertTrue("-saveNamespace worked in non safemode", shHDFS.getRet() != 0);
   }
 
+@Category ( EssentialTests.class )
   @Test
   public void testDFSrefreshcommands() {
     // refreshNodes
@@ -123,6 +130,7 @@ public class TestDFSAdmin {
     assertTrue("-refreshSuperUserGroupsConfiguration failed", shHDFS.getRet() == 0); 
   }
 
+@Category ( NormalTests.class )
   @Test
   public void testDFSstorage() {  
     // restoreFailedStorage
@@ -141,6 +149,7 @@ public class TestDFSAdmin {
     assertTrue("-restoreFailedStorage false failed", shHDFS.getRet() == 0); 
   }
 
+@Category ( NormalTests.class )
   @Test
   public void testDFSquotas() {
     // setQuota, clrQuota

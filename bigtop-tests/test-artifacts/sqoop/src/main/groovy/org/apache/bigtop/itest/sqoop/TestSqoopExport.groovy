@@ -36,6 +36,9 @@ import org.junit.Test
 
 import org.apache.bigtop.itest.JarContent
 import org.apache.bigtop.itest.shell.Shell
+import org.junit.experimental.categories.Category;
+import org.apache.bigtop.itest.interfaces.EssentialTests;
+import org.apache.bigtop.itest.interfaces.NormalTests;
 
 class TestSqoopExport {
   private static String mysql_user =
@@ -209,6 +212,7 @@ class TestSqoopExport {
   }
 
 
+@Category ( EssentialTests.class )
   @Test
   public void testDateTimeExport() {
     String tableName = "t_date";
@@ -220,6 +224,7 @@ class TestSqoopExport {
         0, sh.exec("diff -u $DATA_DIR/sqoop-t_date-export-com.out t_date.out").getRet());
   }
 
+@Category ( EssentialTests.class )
   @Test
   public void testStringExport() {
     String tableName = "t_string";
@@ -232,6 +237,7 @@ class TestSqoopExport {
   }
 
 
+@Category ( NormalTests.class )
   @Test
   public void testBooleanExport() {
     String tableName = "t_bool";
@@ -243,6 +249,7 @@ class TestSqoopExport {
         0, sh.exec("diff -u $DATA_DIR/sqoop-t_bool-export.out t_bool.out").getRet());
   }
 
+@Category ( NormalTests.class )
   @Test
   public void testIntegerExport() {
     String tableName = "t_int";
@@ -254,6 +261,7 @@ class TestSqoopExport {
         0, sh.exec("diff -u $DATA_DIR/sqoop-t_int.out t_int.out").getRet());
   }
 
+@Category ( NormalTests.class )
   @Test
   public void testFixedPointFloatingPointExport() {
     String tableName = "t_fp";

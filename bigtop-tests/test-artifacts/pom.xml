@@ -33,6 +33,7 @@
 
 
   <modules>
+    <module>interfaces</module>
     <module>hadoop</module>
     <module>package</module>
     <module>oozie</module>
