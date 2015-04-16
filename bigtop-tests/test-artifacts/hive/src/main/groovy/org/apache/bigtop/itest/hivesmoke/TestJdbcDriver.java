@@ -46,7 +46,7 @@ import org.apache.bigtop.itest.interfaces.EssentialTests;
 
 @Contract(
   properties = {
-    @Property(name="hiveserver.startup.wait", type=Property.Type.INT, longValue=3000, intValue=3000, defaultValue="3000")
+    @Property(name="hiveserver.startup.wait", type=Property.Type.INT, longValue=10000, intValue=10000, defaultValue="10000")
   },
   env = {})
 
@@ -76,6 +76,7 @@ public class TestJdbcDriver {
     assertTrue("Could not copy local file to test directory", sh.getRet() == 0);
     // start hiveserver in background and remember the pid
     sh.exec("(HIVE_PORT="+HIVE_SERVER_DB_PORT+" hive --service hiveserver > /dev/null 2>&1 & echo $! ) 2> /dev/null");
+    assertTrue("Hive server is not getting started at port:"+HIVE_SERVER_DB_PORT, sh.getRet() == 0);
     hiveserver_pid = sh.getOut().get(0);
     Thread.sleep(hiveserver_startup_wait); // allow time for hiveserver to be up
   }
