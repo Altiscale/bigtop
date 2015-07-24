@@ -144,6 +144,37 @@ exec /usr/lib/oozie/bin/oozie "\$@"
 EOF
 chmod 755 ${BIN_DIR}/oozie
 
+[ -d ${SERVER_PREFIX}/usr/bin ] || install -d -m 0755 ${SERVER_PREFIX}/usr/bin
+cat > ${SERVER_PREFIX}/usr/bin/oozie-setup <<'EOF'
+#!/bin/bash
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Autodetect JAVA_HOME if not defined
+. /usr/lib/bigtop-utils/bigtop-detect-javahome
+
+if [ "$1" == "prepare-war" ]; then
+    echo "The prepare-war command is not supported in Apache Bigtop packages."
+    exit 1
+fi
+
+COMMAND="/usr/lib/oozie/bin/oozie-setup.sh $@"
+su -s /bin/bash -c "$COMMAND" oozie
+EOF
+chmod 755 ${SERVER_PREFIX}/usr/bin/oozie-setup
 
 ## Install server image
 SERVER_LIB_DIR=${SERVER_PREFIX}/usr/lib/oozie
@@ -154,7 +185,7 @@ DATA_DIR=${SERVER_PREFIX}/var/lib/oozie
 install -d -m 0755 ${SERVER_LIB_DIR}
 install -d -m 0755 ${SERVER_LIB_DIR}/bin
 install -d -m 0755 ${DATA_DIR}
-for file in ooziedb.sh oozied.sh oozie-sys.sh ; do
+for file in ooziedb.sh oozied.sh oozie-sys.sh oozie-setup.sh ; do
   cp ${BUILD_DIR}/bin/$file ${SERVER_LIB_DIR}/bin
 done
 
@@ -182,21 +213,21 @@ mkdir ${WEBAPP_DIR}
 mv -f ${WEBAPP_DIR}/WEB-INF/lib ${SERVER_LIB_DIR}/libserver
 touch ${SERVER_LIB_DIR}/webapps/oozie.war
 
-HTTP_DIRECTORY=${ETC_DIR}/tomcat-deployment.http
+install -m 0755 ${EXTRA_DIR}/tomcat-deployment.sh ${SERVER_LIB_DIR}/tomcat-deployment.sh
+
+HTTP_DIRECTORY=${ETC_DIR}/tomcat-conf.http
 install -d -m 0755 ${HTTP_DIRECTORY}
 cp -R ${BUILD_DIR}/oozie-server/conf ${HTTP_DIRECTORY}/conf
 cp ${EXTRA_DIR}/context.xml ${HTTP_DIRECTORY}/conf/
 cp ${EXTRA_DIR}/catalina.properties ${HTTP_DIRECTORY}/conf/
-mv ${SERVER_LIB_DIR}/webapps/oozie/WEB-INF ${HTTP_DIRECTORY}/WEB-INF
+install -d -m 0755 ${HTTP_DIRECTORY}/WEB-INF
+mv ${SERVER_LIB_DIR}/webapps/oozie/WEB-INF/*.xml ${HTTP_DIRECTORY}/WEB-INF
 
-HTTPS_DIRECTORY=${ETC_DIR}/tomcat-deployment.https
+HTTPS_DIRECTORY=${ETC_DIR}/tomcat-conf.https
 cp -r ${HTTP_DIRECTORY} ${HTTPS_DIRECTORY}
-cp ${HTTPS_DIRECTORY}/conf/ssl/ssl-server.xml ${HTTPS_DIRECTORY}/conf/server.xml
-cp ${BUILD_DIR}/oozie-server/conf/ssl/ssl-web.xml ${HTTPS_DIRECTORY}/WEB-INF/web.xml
-
-ln -s /usr/lib/oozie/webapps ${ETC_DIR}/tomcat-deployment.http/
-ln -s /usr/lib/oozie/webapps ${ETC_DIR}/tomcat-deployment.https/
-ln -s /var/lib/oozie/tomcat-deployment/WEB-INF ${SERVER_LIB_DIR}/webapps/oozie/
+mv ${HTTPS_DIRECTORY}/conf/ssl/ssl-server.xml ${HTTPS_DIRECTORY}/conf/server.xml
+mv ${HTTPS_DIRECTORY}/conf/ssl/ssl-web.xml ${HTTPS_DIRECTORY}/WEB-INF/web.xml
+rm -r ${HTTP_DIRECTORY}/conf/ssl
 
 # Create all the jars needed for tools execution
 install -d -m 0755 ${SERVER_LIB_DIR}/libtools
@@ -207,6 +238,7 @@ for i in `cd ${BUILD_DIR}/libtools ; ls *` ; do
     cp ${BUILD_DIR}/libtools/$i ${SERVER_LIB_DIR}/libtools/$i
   fi
 done
+rm -rf ${SERVER_LIB_DIR}/libtools/hadoop-client-*.jar
 
 # Provide a convenience symlink to be more consistent with tarball deployment
 ln -s ${DATA_DIR#${SERVER_PREFIX}} ${SERVER_LIB_DIR}/libext

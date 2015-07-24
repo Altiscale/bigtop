@@ -14,33 +14,23 @@
 # limitations under the License.
 
 class kerberos {
-  class site {
-    # The following is our interface to the world. This is what we allow
-    # users to tweak from the outside (see tests/init.pp for a complete
-    # example) before instantiating target classes.
-    # Once we migrate to Puppet 2.6 we can potentially start using 
-    # parametrized classes instead.
-    $domain     = $kerberos_domain     ? { '' => inline_template('<%= domain %>'),
-                                           default => $kerberos_domain }
-    $realm      = $kerberos_realm      ? { '' => inline_template('<%= domain.upcase %>'),
-                                           default => $kerberos_realm } 
-    $kdc_server = $kerberos_kdc_server ? { '' => 'localhost',
-                                           default => $kerberos_kdc_server }
-    $kdc_port   = $kerberos_kdc_port   ? { '' => '88', 
-                                           default => $kerberos_kdc_port } 
-    $admin_port = 749 /* BUG: linux daemon packaging doesn't let us tweak this */
-
-    $keytab_export_dir = "/var/lib/bigtop_keytabs"
+  class site ($domain = inline_template('<%= domain %>'),
+      $realm = inline_template('<%= domain.upcase %>'),
+      $kdc_server = 'localhost',
+      $kdc_port = '88',
+      $admin_port = 749,
+      $keytab_export_dir = "/var/lib/bigtop_keytabs") {
 
     case $operatingsystem {
-        'ubuntu': {
+        'ubuntu','debian': {
             $package_name_kdc    = 'krb5-kdc'
             $service_name_kdc    = 'krb5-kdc'
             $package_name_admin  = 'krb5-admin-server'
             $service_name_admin  = 'krb5-admin-server'
             $package_name_client = 'krb5-user'
             $exec_path           = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-            $kdc_etc_path        = '/etc/krb5kdc/'
+            $kdc_etc_path        = '/etc/krb5kdc'
+            $kdc_db_path         = '/var/lib/krb5kdc'
         }
         # default assumes CentOS, Redhat 5 series (just look at how random it all looks :-()
         default: {
@@ -50,7 +40,8 @@ class kerberos {
             $service_name_admin  = 'kadmin'
             $package_name_client = 'krb5-workstation'
             $exec_path           = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/kerberos/sbin:/usr/kerberos/bin'
-            $kdc_etc_path        = '/var/kerberos/krb5kdc/'
+            $kdc_etc_path        = '/var/kerberos/krb5kdc'
+            $kdc_db_path         = '/var/kerberos/krb5kdc'
         }
     }
 
@@ -180,13 +171,10 @@ class kerberos {
     }
   }
 
-  define host_keytab($princs = undef, $spnego = disabled) {
+  define host_keytab($princs = [ $title ], $spnego = disabled,
+    $owner = $title, $group = "", $mode = "0400",
+  ) {
     $keytab = "/etc/$title.keytab"
-
-    $requested_princs = $princs ? { 
-      undef   => [ $title ],
-      default => $princs,
-    }
 
     $internal_princs = $spnego ? {
       /(true|enabled)/ => [ 'HTTP' ],
@@ -195,12 +183,12 @@ class kerberos {
     realize(Kerberos::Principal[$internal_princs])
 
     $includes = inline_template("<%=
-      [requested_princs, internal_princs].flatten.map { |x|
+      [@princs, @internal_princs].flatten.map { |x|
         \"rkt $kerberos::site::keytab_export_dir/#{x}.keytab\"
       }.join(\"\n\")
     %>")
 
-    kerberos::principal { $requested_princs:
+    kerberos::principal { $princs:
     }
 
     exec { "ktinject.$title":
@@ -209,15 +197,16 @@ class kerberos {
         $includes
         wkt $keytab
 EOF
-        chown $title $keytab",
+        chown ${owner}:${group} ${keytab}
+        chmod ${mode} ${keytab}",
       creates => $keytab,
-      require => [ Kerberos::Principal[$requested_princs],
+      require => [ Kerberos::Principal[$princs],
                    Kerberos::Principal[$internal_princs] ],
     }
 
     exec { "aquire $title keytab":
         path    => $kerberos::site::exec_path,
-        user    => $title,
+        user    => $owner,
         command => "bash -c 'kinit -kt $keytab ${title}/$::fqdn ; kinit -R'",
         require => Exec["ktinject.$title"],
     }

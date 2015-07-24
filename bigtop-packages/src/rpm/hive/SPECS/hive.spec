@@ -25,9 +25,9 @@
 %define usr_bin /usr/bin
 %define hive_config_virtual hive_active_configuration
 %define man_dir %{_mandir}
-%define hive_services hive-server hive-metastore hive-server2 hive-hcatalog-server hive-webhcat-server
+%define hive_services hive-metastore hive-server2 hive-hcatalog-server hive-webhcat-server
 # After we run "ant package" we'll find the distribution here
-%define hive_dist src/build/dist
+%define hive_dist build/dist
 
 %if  %{!?suse_version:1}0
 
@@ -60,21 +60,19 @@ Name: hive
 Version: %{hive_version}
 Release: %{hive_release}
 Summary: Hive is a data warehouse infrastructure built on top of Hadoop
-License: Apache License v2.0
+License: ASL 2.0
 URL: http://hive.apache.org/
 Group: Development/Libraries
 Buildroot: %{_topdir}/INSTALL/%{name}-%{version}
 BuildArch: noarch
-Source0: %{name}-%{hive_base_version}.tar.gz
+Source0: apache-%{name}-%{hive_base_version}-src.tar.gz
 Source1: do-component-build
 Source2: install_hive.sh
 Source3: init.d.tmpl
 Source4: hive-site.xml
-Source5: hive-server.default
 Source6: hive-metastore.default
 Source7: hive.1
 Source8: hive-site.xml
-Source9: hive-server.svc
 Source10: hive-metastore.svc
 Source11: hive-server2.default
 Source12: hive-server2.svc
@@ -83,25 +81,21 @@ Source14: hive-hcatalog-server.svc
 Source15: hive-webhcat-server.svc
 Source16: hive-hcatalog-server.default
 Source17: hive-webhcat-server.default
+Source18: bigtop.bom
+#BIGTOP_PATCH_FILES
 Requires: hadoop-client, bigtop-utils >= 0.7, zookeeper, hive-jdbc = %{version}-%{release}
 Conflicts: hadoop-hive
 Obsoletes: %{name}-webinterface
 
 %description 
-Hive is a data warehouse infrastructure built on top of Hadoop that provides tools to enable easy data summarization, adhoc querying and analysis of large datasets data stored in Hadoop files. It provides a mechanism to put structure on this data and it also provides a simple query language called Hive QL which is based on SQL and which enables users familiar with SQL to query this data. At the same time, this language also allows traditional map/reduce programmers to be able to plug in their custom mappers and reducers to do more sophisticated analysis which may not be supported by the built-in capabilities of the language. 
-
-%package server
-Summary: Provides a Hive Thrift service.
-Group: System/Daemons
-Requires: %{name} = %{version}-%{release}
-Requires(pre): %{name} = %{version}-%{release}
+Hive is a data warehouse infrastructure built on top of Hadoop that provides tools to enable easy data summarization, adhoc querying and analysis of large datasets data stored in Hadoop files. It provides a mechanism to put structure on this data and it also provides a simple query language called Hive QL which is based on SQL and which enables users familiar with SQL to query this data. At the same time, this language also allows traditional map/reduce programmers to be able to plug in their custom mappers and reducers to do more sophisticated analysis which may not be supported by the built-in capabilities of the language.
 
 %if  %{?suse_version:1}0
 # Required for init scripts
 Requires: insserv
 %else
 # Required for init scripts
-Requires: redhat-lsb
+Requires: /lib/lsb/init-functions
 %endif
 
 %package server2
@@ -115,12 +109,8 @@ Requires(pre): %{name} = %{version}-%{release}
 Requires: insserv
 %else
 # Required for init scripts
-Requires: redhat-lsb
+Requires: /lib/lsb/init-functions
 %endif
-
-
-%description server
-This optional package hosts a Thrift server for Hive clients across a network to use.
 
 %description server2
 This optional package hosts a Thrift server for Hive clients across a network to use with improved concurrency support.
@@ -135,19 +125,17 @@ Requires(pre): %{name} = %{version}-%{release}
 Requires: insserv
 %else
 # Required for init scripts
-Requires: redhat-lsb
+Requires: /lib/lsb/init-functions
 %endif
 
 
 %description metastore
 This optional package hosts a metadata server for Hive clients across a network to use.
 
-
 %package hbase
 Summary: Provides integration between Apache HBase and Apache Hive
 Group: Development/Libraries
 Requires: hive = %{version}-%{release}, hbase
-
 
 %description hbase
 This optional package provides integration between Apache HBase and Apache Hive
@@ -163,7 +151,7 @@ This package provides libraries necessary to connect to Apache Hive via JDBC
 %package hcatalog
 Summary: Apache Hcatalog is a data warehouse infrastructure built on top of Hadoop
 Group: Development/Libraries
-Requires: hadoop, hive, bigtop-utils >= 0.6
+Requires: hadoop, hive, bigtop-utils >= 0.7
 
 %description hcatalog
 Apache HCatalog is a table and storage management service for data created using Apache Hadoop.
@@ -201,7 +189,7 @@ Requires: initscripts
 # So I will suppose anything that is not Mageia or a SUSE will be a RHEL/CentOS/Fedora
 %if %{!?suse_version:1}0 && %{!?mgaversion:1}0
 # Required for init scripts
-Requires: redhat-lsb
+Requires: /lib/lsb/init-functions
 %endif
 
 %description hcatalog-server
@@ -226,15 +214,23 @@ Requires: initscripts
 # CentOS 5 does not have any dist macro
 # So I will suppose anything that is not Mageia or a SUSE will be a RHEL/CentOS/Fedora
 %if %{!?suse_version:1}0 && %{!?mgaversion:1}0
+%define __os_install_post \
+    /usr/lib/rpm/redhat/brp-compress ; \
+    /usr/lib/rpm/redhat/brp-strip-static-archive %{__strip} ; \
+    /usr/lib/rpm/redhat/brp-strip-comment-note %{__strip} %{__objdump} ; \
+    /usr/lib/rpm/brp-python-bytecompile ; \
+    %{nil}
 # Required for init scripts
-Requires: redhat-lsb
+Requires: /lib/lsb/init-functions
 %endif
 
 %description webhcat-server
 Init scripts for WebHcat server.
 
 %prep
-%setup -n %{name}-%{hive_base_version}
+%setup -q -n apache-%{name}-%{hive_base_version}-src
+
+#BIGTOP_PATCH_COMMANDS
 
 %build
 bash %{SOURCE1}
@@ -256,7 +252,6 @@ cp $RPM_SOURCE_DIR/hive-site.xml .
 %__install -d -m 0755 $RPM_BUILD_ROOT/%{initd_dir}/
 %__install -d -m 0755 $RPM_BUILD_ROOT/etc/default/
 %__install -m 0644 $RPM_SOURCE_DIR/hive-metastore.default $RPM_BUILD_ROOT/etc/default/%{name}-metastore
-%__install -m 0644 $RPM_SOURCE_DIR/hive-server.default $RPM_BUILD_ROOT/etc/default/%{name}-server
 %__install -m 0644 $RPM_SOURCE_DIR/hive-server2.default $RPM_BUILD_ROOT/etc/default/%{name}-server2
 %__install -m 0644 $RPM_SOURCE_DIR/hive-hcatalog-server.default $RPM_BUILD_ROOT/etc/default/%{name}-hcatalog-server
 %__install -m 0644 $RPM_SOURCE_DIR/hive-webhcat-server.default $RPM_BUILD_ROOT/etc/default/%{name}-webhcat-server
@@ -338,7 +333,6 @@ fi
 %{man_dir}/man1/hive.1.*
 %exclude %dir %{usr_lib_hive}
 %exclude %dir %{usr_lib_hive}/lib
-%exclude %{usr_lib_hive}/lib/hbase.jar
 %exclude %{usr_lib_hive}/lib/hive-jdbc-*.jar
 %exclude %{usr_lib_hive}/lib/hive-metastore-*.jar
 %exclude %{usr_lib_hive}/lib/hive-serde-*.jar
@@ -346,7 +340,6 @@ fi
 %exclude %{usr_lib_hive}/lib/libthrift-*.jar
 %exclude %{usr_lib_hive}/lib/hive-service-*.jar
 %exclude %{usr_lib_hive}/lib/libfb303-*.jar
-%exclude %{usr_lib_hive}/lib/slf4j-*.jar
 %exclude %{usr_lib_hive}/lib/log4j-*.jar
 %exclude %{usr_lib_hive}/lib/commons-logging-*.jar
 
@@ -365,7 +358,6 @@ fi
 %{usr_lib_hive}/lib/libthrift-*.jar
 %{usr_lib_hive}/lib/hive-service-*.jar
 %{usr_lib_hive}/lib/libfb303-*.jar
-%{usr_lib_hive}/lib/slf4j-*.jar
 %{usr_lib_hive}/lib/log4j-*.jar
 %{usr_lib_hive}/lib/commons-logging-*.jar
 
@@ -405,9 +397,8 @@ if [ "$1" = 0 ] ; then \
 fi \
 %postun %1 \
 if [ $1 -ge 1 ]; then \
-	service %{name}-%1 condrestart >/dev/null 2>&1 || : \
+   service %{name}-%1 condrestart >/dev/null 2>&1 || : \
 fi
-%service_macro server
 %service_macro server2
 %service_macro metastore
 %service_macro hcatalog-server

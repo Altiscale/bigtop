@@ -53,7 +53,7 @@ Summary: Giraph is a BSP inspired graph processing platform that runs on Hadoop
 URL: http://incubator.apache.org/giraph/
 Group: Development/Libraries
 Buildroot: %{_topdir}/INSTALL/%{name}-%{version}
-License: APL2
+License: ASL 2.0
 Source0: %{name}-%{giraph_base_version}.tar.gz
 Source1: do-component-build
 Source2: install_%{name}.sh
@@ -63,6 +63,15 @@ Requires: zookeeper, hadoop-client, bigtop-utils >= 0.7
 
 %description 
 Giraph implements a graph processing platform to run large scale algorithms (such as page rank, shared connections, personalization-based popularity, etc.) on top of Hadoop infrastructure. Giraph builds upon the graph-oriented nature of Pregel but additionally adds fault-tolerance to the coordinator process with the use of ZooKeeper as its centralized coordination service.
+
+%package doc
+Summary: Documentation for Apache Giraph
+Group: Documentation
+%description doc
+This package contains the documentation for Apache Giraph
+
+%description doc
+Documentation for Apache Solr
 
 %prep
 %setup -n %{name}-%{giraph_base_version}
@@ -96,5 +105,7 @@ fi
 %{lib_giraph}
 %{_bindir}/giraph
 %config(noreplace) %{conf_giraph}.dist
-%defattr(0644,root,root,0755)
+
+%files doc
+%defattr(-,root,root)
 %doc %{doc_giraph}

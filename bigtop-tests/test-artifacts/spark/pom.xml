@@ -23,19 +23,33 @@
   <parent>
     <groupId>org.apache.bigtop.itest</groupId>
     <artifactId>bigtop-smokes</artifactId>
-    <version>0.7.0-altiscale-SNAPSHOT</version>
+    <version>1.0.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <groupId>org.apache.bigtop.itest</groupId>
   <artifactId>spark-smoke</artifactId>
-  <version>0.7.0-altiscale-SNAPSHOT</version>
+  <version>1.0.0</version>
   <name>sparksmoke</name>
+
+  <repositories>
+    <repository>
+      <id>akka-repo</id>
+      <name>Akka Repository</name>
+      <url>http://repo.akka.io/releases/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
   <dependencies>
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-core_2.9.3</artifactId>
+      <artifactId>spark-core_2.10</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>

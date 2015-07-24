@@ -21,14 +21,14 @@
   <parent>
     <groupId>org.apache.bigtop</groupId>
     <artifactId>bigtop</artifactId>
-    <version>0.7.0-altiscale-SNAPSHOT</version>
+    <version>1.0.0</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <groupId>org.apache.bigtop.itest</groupId>
   <artifactId>bigtop-smokes</artifactId>
   <packaging>pom</packaging>
-  <version>0.7.0-altiscale-SNAPSHOT</version>
+  <version>1.0.0</version>
   <name>bigtop-smokes</name>
 
 
@@ -36,8 +36,8 @@
     <module>interfaces</module>
     <module>hadoop</module>
     <module>package</module>
+    <module>httpfs</module>
     <module>oozie</module>
-    <module>hive</module>
     <module>hbase</module>
     <module>flume</module>
     <module>sqoop</module>
@@ -47,10 +47,11 @@
     <module>solr</module>
     <module>crunch</module>
     <module>datafu</module>
-    <!-- <module>fatjar</module> -->
+    <module>longevity</module>
     <module>hcatalog</module>
     <!-- <module>spark</module>  -->
     <module>phoenix</module>
+    <module>fatjar</module>
   </modules>
 
   <dependencies>
@@ -77,7 +78,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.5.1</version>
+        <version>${maven-compiler-plugin.version}</version>
         <configuration>
           <compilerId>groovy-eclipse-compiler</compilerId>
           <source>1.7</source>

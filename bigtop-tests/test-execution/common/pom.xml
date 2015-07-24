@@ -24,14 +24,14 @@
   <parent>
     <groupId>org.apache.bigtop</groupId>
     <artifactId>bigtop</artifactId>
-    <version>0.7.0-altiscale-SNAPSHOT</version>
+    <version>1.0.0</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
   <groupId>org.apache.bigtop.itest</groupId>
   <artifactId>stacks-common</artifactId>
   <packaging>pom</packaging>
-  <version>0.7.0-altiscale-SNAPSHOT</version>
+  <version>1.0.0</version>
   <name>stacks-validation-common</name>
 
   <properties>
@@ -45,6 +45,7 @@
       These settings should be enforced at the top level
     -->
     <HADOOP_HOME>${env.HADOOP_HOME}</HADOOP_HOME>
+    <HADOOP_MAPRED_HOME>${env.HADOOP_MAPRED_HOME}</HADOOP_MAPRED_HOME>
     <HADOOP_CONF_DIR>${env.HADOOP_CONF_DIR}</HADOOP_CONF_DIR>
     <!--
       Default exclude mask for failsafe plugin. OPTIONAL

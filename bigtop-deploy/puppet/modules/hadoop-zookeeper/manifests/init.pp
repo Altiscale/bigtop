@@ -14,14 +14,17 @@
 # limitations under the License.
 
 class hadoop-zookeeper {
-  define client {
+  class client {
     package { "zookeeper":
       ensure => latest,
       require => Package["jdk"],
     } 
   }
 
-  define server($myid, $ensemble = ["localhost:2888:3888"],
+  class server($myid,
+                $port = "2181",
+                $datadir = "/var/lib/zookeeper",
+                $ensemble = ["localhost:2888:3888"],
                 $kerberos_realm = "") 
   {
     package { "zookeeper-server":
@@ -45,7 +48,7 @@ class hadoop-zookeeper {
     }
 
     file { "/var/lib/zookeeper/myid":
-      content => inline_template("<%= myid %>"),
+      content => inline_template("<%= @myid %>"),
       require => Package["zookeeper-server"],
     }
     

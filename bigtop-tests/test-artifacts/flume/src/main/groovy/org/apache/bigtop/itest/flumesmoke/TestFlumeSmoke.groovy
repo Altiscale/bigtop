@@ -66,8 +66,7 @@ class TestFlumeSmoke {
     String node_config = "node:text(\"events.txt\")|collectorSink(\"${hdfs_sink_dir}\",\"data\");";
     System.out.println("${node_config}");
 
-    
-sh.exec("export FLUME_CONF_DIR=./${id}",
+    sh.exec("export FLUME_CONF_DIR=./${id}",
             "flume node_nowatch -s -1 -n node -c '${node_config}'");
     assertEquals("Flume failed to accept events",
                  0, sh.ret);
@@ -99,12 +98,12 @@ shdel.exec("hadoop fs -rm /tmp/flumetest/FlumeData.*");
   }
 
   @Ignore("BIGTOP-218")
-  @Test(timeout=300000L)
+  @Test(timeout = 300000L)
   public void testDeflate() {
     compressionCommonTest("FlumeSmokeDeflate", "perl -MCompress::Zlib -e 'undef \$/; print uncompress(<>)'", "*.deflate");
   }
 
-  @Test(timeout=300000L)
+  @Test(timeout = 300000L)
   public void testGzip() {
     compressionCommonTest("FlumeSmokeGzip", "gzip -d", "*.gz");
   }

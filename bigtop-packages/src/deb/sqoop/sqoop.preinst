@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,8 +14,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# preinst script for sqoop-server
+
+# preinst script for sqoop
 #
 # see: dh_installdeb(1)
 
@@ -36,14 +37,13 @@ case "$1" in
                 adduser \
                   --system \
                   --group \
-                  --home /var/run/sqoop \
+                  --home /var/lib/sqoop \
                   --gecos "Sqoop User" \
                   --shell /bin/false \
                   sqoop >/dev/null
         fi
-        install -d -m 0755 -o sqoop -g sqoop /var/log/sqoop
-        install -d -m 0755 -o sqoop -g sqoop /var/lib/sqoop
-        install -d -m 0755 -o sqoop -g sqoop /var/tmp/sqoop
+	install -d -m 0755 -o sqoop -g sqoop /var/lib/sqoop
+	install -d -m 0755 -o sqoop -g sqoop /var/log/sqoop
     ;;
 
     abort-upgrade)

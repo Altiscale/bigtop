@@ -15,9 +15,46 @@
 
 class bigtop_toolchain::env {
   case $operatingsystem{
-    Ubuntu: {
+    Ubuntu,Debian: {
       file { '/etc/profile.d/bigtop.sh':
-        source => 'puppet:///modules/bigtop_toolchain/jenkins.sh.ubu',
+        source => 'puppet:///modules/bigtop_toolchain/jenkins.sh.debian',
+        ensure => present,
+        owner  => root,
+        group  => root,
+        mode   => 644,
+      }
+    }
+    Fedora: {
+      file {'/etc/profile.d/bigtop.sh':
+        source => 'puppet:///modules/bigtop_toolchain/jenkins.sh.fedora',
+        ensure => present,
+        owner  => root,
+        group  => root,
+        mode   => 644,
+      }
+    }
+    CentOS: {
+      if $operatingsystemmajrelease >=7 {
+        file {'/etc/profile.d/bigtop.sh':
+          source => 'puppet:///modules/bigtop_toolchain/jenkins.sh.fedora',
+          ensure => present,
+          owner  => root,
+          group  => root,
+          mode   => 644,
+        }
+      } else {
+        file {'/etc/profile.d/bigtop.sh':
+          source => 'puppet:///modules/bigtop_toolchain/jenkins.sh.centos',
+          ensure => present,
+          owner  => root,
+          group  => root,
+          mode   => 644,
+        }
+      }
+    }
+    OpenSuSE: {
+      file {'/etc/profile.d/bigtop.sh':
+        source => 'puppet:///modules/bigtop_toolchain/jenkins.sh.opensuse',
         ensure => present,
         owner  => root,
         group  => root,

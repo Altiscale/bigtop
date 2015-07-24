@@ -51,15 +51,19 @@ class TestHadoopSmoke {
   static String nn = (new Configuration()).get(DFSConfigKeys.FS_DEFAULT_NAME_KEY)
 
   String cmd = "hadoop jar ${STREAMING_JAR}" +
-      " -D mapred.map.tasks=1 -D mapred.reduce.tasks=1 -D mapred.job.name=Experiment"
+    " -D mapred.map.tasks=1 -D mapred.reduce.tasks=1 -D mapred.job.name=Experiment"
   String cmd2 = " -input ${testDir}/cachefile/input.txt -mapper map.sh -file map.sh -reducer cat" +
-      " -output ${testDir}/cachefile/out -verbose"
+    " -output ${testDir}/cachefile/out -verbose"
   String arg = "${nn}/user/${System.properties['user.name']}/${testDir}/cachefile/cachedir.jar#testlink"
 
   @BeforeClass
-  static void  setUp() throws IOException {
+  static void setUp() throws IOException {
     String[] inputFiles = ["cachedir.jar", "input.txt"];
-    TestUtils.unpackTestResources(TestHadoopSmoke.class, "${testDir}/cachefile", inputFiles, null);
+    try {
+      TestUtils.unpackTestResources(TestHadoopSmoke.class, "${testDir}/cachefile", inputFiles, null);
+    } catch(Throwable t) {
+      logError("Couldn't unpack resources, you better have resources on your classpath.");
+    }
   }
 
   @AfterClass
@@ -67,10 +71,10 @@ class TestHadoopSmoke {
     sh.exec("hadoop fs -rmr -skipTrash ${testDir}")
   }
 
-  @Test
+  @Test (timeout = 0x810000l)
   void testCacheArchive() {
     sh.exec("hadoop fs -rmr ${testDir}/cachefile/out",
-             cmd + ' -cacheArchive ' + arg + cmd2)
+      cmd + ' -cacheArchive ' + arg + cmd2)
     logError(sh)
     sh.exec("hadoop fs -cat ${testDir}/cachefile/out/part-00000")
     logError(sh)
@@ -78,10 +82,10 @@ class TestHadoopSmoke {
     assertEquals("cache1\t\ncache2\t", sh.out.join('\n'))
   }
 
-  @Test
+  @Test (timeout = 0x810000l)
   void testArchives() {
     sh.exec("hadoop fs -rmr ${testDir}/cachefile/out",
-             cmd + ' -archives ' + arg + cmd2)
+      cmd + ' -archives ' + arg + cmd2)
     logError(sh)
     sh.exec("hadoop fs -cat ${testDir}/cachefile/out/part-00000")
     logError(sh)

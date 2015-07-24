@@ -35,16 +35,17 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.io.hfile.CacheConfig;
-import org.apache.hadoop.hbase.io.hfile.Compression;
+import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.io.hfile.HFile;
+import org.apache.hadoop.hbase.io.hfile.HFileContext;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.ChecksumType;
 
 public class HBaseTestUtil {
 
-  public static int BLOCKSIZE = 64*1024;
+  public static int BLOCKSIZE = 64 * 1024;
   public static String COMPRESSION =
-    Compression.Algorithm.NONE.getName();
+      Compression.Algorithm.NONE.getName();
 
   private static String getTestPrefix() {
     return String.valueOf(System.currentTimeMillis());
@@ -55,7 +56,7 @@ public class HBaseTestUtil {
   }
 
   public static HTableDescriptor createTestTableDescriptor(String testName,
-      byte[] familyName) {
+                                                           byte[] familyName) {
     byte[] tableName = getTestTableName(testName);
     HTableDescriptor htd = new HTableDescriptor(tableName);
     htd.addFamily(new HColumnDescriptor(familyName));
@@ -64,7 +65,13 @@ public class HBaseTestUtil {
 
   public static HBaseAdmin getAdmin()
       throws MasterNotRunningException, ZooKeeperConnectionException {
-    return new HBaseAdmin(HBaseConfiguration.create());
+    HBaseAdmin hAdmin = null;
+    try {
+      hAdmin = new HBaseAdmin(HBaseConfiguration.create());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return hAdmin;
   }
 
   public static FileSystem getClusterFileSystem() throws IOException {
@@ -84,19 +91,17 @@ public class HBaseTestUtil {
       Configuration conf,
       FileSystem fs, Path path,
       byte[] family, byte[] qualifier,
-      byte[] startKey, byte[] endKey, int numRows) throws IOException
-  {
-      HFile.WriterFactory wf = HFile.getWriterFactory(conf, new CacheConfig(conf));
-      wf.withChecksumType(ChecksumType.CRC32);
-      wf.withBlockSize(BLOCKSIZE);
-      wf.withCompression(COMPRESSION);
-      wf.withComparator(KeyValue.KEY_COMPARATOR);
-      wf.withPath(fs, path);
+      byte[] startKey, byte[] endKey, int numRows) throws IOException {
+    HFile.WriterFactory wf = HFile.getWriterFactory(conf, new CacheConfig(conf));
+    HFileContext hFileContext = new HFileContext();
+    wf.withFileContext(hFileContext);
+    wf.withComparator(KeyValue.COMPARATOR);
+    wf.withPath(fs, path);
     HFile.Writer writer = wf.create();
     long now = System.currentTimeMillis();
     try {
       // subtract 2 since iterateOnSplits doesn't include boundary keys
-      for (byte[] key : Bytes.iterateOnSplits(startKey, endKey, numRows-2)) {
+      for (byte[] key : Bytes.iterateOnSplits(startKey, endKey, numRows - 2)) {
         KeyValue kv = new KeyValue(key, family, qualifier, now, key);
         writer.append(kv);
       }

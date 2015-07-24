@@ -14,23 +14,24 @@
 # limitations under the License.
 class bigtop_toolchain::scala {
 
-  include bigtop_toolchain::deps
-
   case $operatingsystem{
-    Ubuntu: { 
-    $pm = '/usr/bin/dpkg -i'
-    $requires = [ Exec["/usr/bin/wget http://www.scala-lang.org/files/archive/$bigtop_toolchain::deps::scala_file"], Package ['oracle-java6-installer'] ]
+    Debian: {
+      package { 'scala' :
+        ensure => present
+      }
     }
-    default: { 
-    $pm = '/bin/rpm -Uvh'
-    $requires = Exec["/usr/bin/wget http://www.scala-lang.org/files/archive/$bigtop_toolchain::deps::scala_file"]
+    default: {
+      $install_scala_cmd = $operatingsystem ? {
+        'Ubuntu'               => '/bin/bash -c "wget http://www.scala-lang.org/files/archive/scala-2.10.3.deb ; dpkg -x ./scala-2.10.3.deb /"',
+        /(?i:(SLES|opensuse))/ => '/usr/bin/zypper install -y http://www.scala-lang.org/files/archive/scala-2.10.3.rpm',
+        default                => '/bin/rpm -U http://www.scala-lang.org/files/archive/scala-2.10.3.rpm'
+      }
+      exec { "install scala":
+        cwd      => '/tmp',
+        command  => $install_scala_cmd,
+        unless   => "/usr/bin/test -f /usr/bin/scala",
+        require  => $requires
+      }
     }
   }
-  
-  exec {"$pm /usr/src/$bigtop_toolchain::deps::scala_file":
-    unless   => "/usr/bin/test -f /usr/bin/scala",
-    #require => Exec["/usr/bin/wget http://www.scala-lang.org/files/archive/$bigtop_toolchain::deps::scala_file"],
-    require  => $requires
-  }
-
 }

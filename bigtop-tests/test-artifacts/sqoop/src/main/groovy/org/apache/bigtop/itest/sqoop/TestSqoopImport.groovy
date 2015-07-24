@@ -63,9 +63,9 @@ class TestSqoopImport {
     "jdbc:mysql://$MYSQL_HOST/$MYSQL_DBNAME";
   private static final String SQOOP_CONNECTION =
     "--connect jdbc:mysql://$MYSQL_HOST/$MYSQL_DBNAME --username=$MYSQL_USER" +
-    (("".equals(MYSQL_PASSWORD)) ? "" : " --password=$MYSQL_PASSWORD");
+      (("".equals(MYSQL_PASSWORD)) ? "" : " --password=$MYSQL_PASSWORD");
   static {
-    System.out.println("SQOOP_CONNECTION string is " + SQOOP_CONNECTION );
+    System.out.println("SQOOP_CONNECTION string is " + SQOOP_CONNECTION);
   }
   private static final String DATA_DIR = System.getProperty("data.dir", "mysql-files");
   private static final String OUTPUT = System.getProperty("output.dir", "/tmp/output-dir");
@@ -79,10 +79,10 @@ class TestSqoopImport {
     if (sh.getRet() == 0) {
       sh.exec("hadoop fs -rmr -skipTrash $OUTPUT");
       assertTrue("Deletion of previous $OUTPUT from HDFS failed",
-          sh.getRet() == 0);
+        sh.getRet() == 0);
     }
     // unpack resource
-    JarContent.unpackJarContainer(TestSqoopImport.class, '.' , null)
+    JarContent.unpackJarContainer(TestSqoopImport.class, '.', null)
 
     // create the database
     sh.exec("sed -i s/MYSQLHOST/$MYSQL_HOST/g $DATA_DIR/mysql-create-user.sql");
@@ -96,12 +96,12 @@ class TestSqoopImport {
 
   @AfterClass
   static void tearDown() {
-    if ('YES'.equals(System.getProperty('delete.testdata','no').toUpperCase())) {
+    if ('YES'.equals(System.getProperty('delete.testdata', 'no').toUpperCase())) {
       sh.exec("hadoop fs -test -e $OUTPUT");
       if (sh.getRet() == 0) {
         sh.exec("hadoop fs -rmr -skipTrash $OUTPUT");
         assertTrue("Deletion of $OUTPUT from HDFS failed",
-            sh.getRet() == 0);
+          sh.getRet() == 0);
       }
     }
   }
@@ -163,7 +163,7 @@ class TestSqoopImport {
     assertNotSame(MPersistableEntity.PERSISTANCE_ID_DEFAULT, job.getPersistenceId());
   }
 
-  protected void runSqoopClient(String tableName=null, String partitionColumn=null, String tableColumns=null, String tableSQL=null, String outputSubdir=null, int extractors=0, int loaders=0) {
+  protected void runSqoopClient(String tableName = null, String partitionColumn = null, String tableColumns = null, String tableSQL = null, String outputSubdir = null, int extractors = 0, int loaders = 0) {
     // Connection creation
     MConnection connection = getClient().newConnection(1L);
     fillConnectionForm(connection);
@@ -175,35 +175,35 @@ class TestSqoopImport {
     // Connector values
     MFormList connectorForms = job.getConnectorPart();
 
-    if(tableName != null) {
+    if (tableName != null) {
       connectorForms.getStringInput("table.tableName").setValue(tableName);
     }
 
-    if(partitionColumn != null) {
+    if (partitionColumn != null) {
       connectorForms.getStringInput("table.partitionColumn").setValue(partitionColumn);
     }
 
-    if(tableColumns != null) {
+    if (tableColumns != null) {
       connectorForms.getStringInput("table.columns").setValue(tableColumns);
     }
 
-    if(tableSQL != null) {
+    if (tableSQL != null) {
       connectorForms.getStringInput("table.sql").setValue(tableSQL);
     }
 
     // Framework values
     MFormList frameworkForms = job.getFrameworkPart();
 
-    if(extractors > 0) {
+    if (extractors > 0) {
       frameworkForms.getIntegerInput("throttling.extractors").setValue(extractors);
     }
 
-    if(loaders > 0) {
+    if (loaders > 0) {
       frameworkForms.getIntegerInput("throttling.loaders").setValue(loaders);
     }
 
     String outSubdir;
-    if(outputSubdir == null) {
+    if (outputSubdir == null) {
       outSubdir = tableName;
     } else {
       outSubdir = outputSubdir;
@@ -234,7 +234,7 @@ class TestSqoopImport {
 
     sh.exec("hadoop fs -cat $OUTPUT/t_bool/part-* > t_bool.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-t_bool.out t_bool.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-t_bool.out t_bool.out").getRet());
   }
 
 
@@ -249,7 +249,7 @@ class TestSqoopImport {
 
     sh.exec("hadoop fs -cat $OUTPUT/t_int/part-* > t_int.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-t_int.out t_int.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-t_int.out t_int.out").getRet());
   }
 
   @Test
@@ -261,7 +261,7 @@ class TestSqoopImport {
 
     sh.exec("hadoop fs -cat $OUTPUT/t_fp/part-* > t_fp.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-t_fp.out t_fp.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-t_fp.out t_fp.out").getRet());
   }
 
 @Category ( EssentialTests.class )
@@ -274,7 +274,7 @@ class TestSqoopImport {
 
     sh.exec("hadoop fs -cat $OUTPUT/t_date/part-* > t_date.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-t_date.out t_date.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-t_date.out t_date.out").getRet());
   }
 
 @Category ( EssentialTests.class )
@@ -287,7 +287,7 @@ class TestSqoopImport {
 
     sh.exec("hadoop fs -cat $OUTPUT/t_string/part-* > t_string.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-t_string.out t_string.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-t_string.out t_string.out").getRet());
   }
 
   @Test
@@ -300,7 +300,7 @@ class TestSqoopImport {
 
     sh.exec("hadoop fs -cat $OUTPUT/testtable/part-* > columns.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-columns.out columns.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-columns.out columns.out").getRet());
   }
 
   @Test
@@ -317,7 +317,7 @@ class TestSqoopImport {
 
     sh.exec("hadoop fs -cat $OUTPUT/$outputSubdir/part-*0 > num-mappers.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-testtable.out num-mappers.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-testtable.out num-mappers.out").getRet());
   }
 
   @Test
@@ -332,7 +332,7 @@ class TestSqoopImport {
 
     sh.exec("hadoop fs -cat $OUTPUT/$outputSubdir/part-* > query.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-query.out query.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-query.out query.out").getRet());
   }
 
   @Test
@@ -349,10 +349,6 @@ class TestSqoopImport {
     assertEquals("sqoop import did not write expected data",
         0, sh.exec("diff -u $DATA_DIR/sqoop-testtable2.out split-by.out").getRet());
   }
-
-
-
-
   //----------------------------------------@Ignore("Backward Compatibility")------------------------------------------//
   // The functionality of the tests below is not currently supported by Sqoop 2.
 
@@ -368,7 +364,7 @@ class TestSqoopImport {
     assertTrue("Sqoop job failed!", sh.getRet() == 0);
     sh.exec("hadoop fs -cat $OUTPUT/alltables/testtable*/part-* > all-tables.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-all-tables.out all-tables.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-all-tables.out all-tables.out").getRet());
   }
 
   @Ignore("Backward Compatibility")
@@ -381,7 +377,7 @@ class TestSqoopImport {
     assertTrue("Sqoop job failed!", sh.getRet() == 0);
     sh.exec("hadoop fs -cat $OUTPUT/append/part-* > append.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-append.out append.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-append.out append.out").getRet());
   }
 
   @Ignore("Backward Compatibility")
@@ -391,7 +387,7 @@ class TestSqoopImport {
     assertTrue("Sqoop job failed!", sh.getRet() == 0);
     sh.exec("hadoop fs -cat $OUTPUT/direct/part-* > direct.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-testtable.out direct.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-testtable.out direct.out").getRet());
   }
 
   @Ignore("Backward Compatibility")
@@ -401,7 +397,7 @@ class TestSqoopImport {
     assertTrue("Sqoop job failed!", sh.getRet() == 0);
     sh.exec("hadoop fs -cat $OUTPUT/warehouse-dir/testtable/part-* > warehouse-dir.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-testtable.out warehouse-dir.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-testtable.out warehouse-dir.out").getRet());
   }
 
   @Ignore("Backward Compatibility")
@@ -411,7 +407,7 @@ class TestSqoopImport {
     assertTrue("Sqoop job failed!", sh.getRet() == 0);
     sh.exec("hadoop fs -cat $OUTPUT/where-clause/part-* > where-clause.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-where-clause.out where-clause.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-where-clause.out where-clause.out").getRet());
   }
 
   @Ignore("Backward Compatibility")
@@ -421,7 +417,7 @@ class TestSqoopImport {
     assertTrue("Sqoop job failed!", sh.getRet() == 0);
     sh.exec("hadoop fs -cat $OUTPUT/null-string/part-* > null-string.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-null-string.out null-string.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-null-string.out null-string.out").getRet());
   }
 
   @Ignore("Backward Compatibility")
@@ -431,6 +427,6 @@ class TestSqoopImport {
     assertTrue("Sqoop job failed!", sh.getRet() == 0);
     sh.exec("hadoop fs -cat $OUTPUT/non-null-string/part-* > non-null-string.out");
     assertEquals("sqoop import did not write expected data",
-        0, sh.exec("diff -u $DATA_DIR/sqoop-null-non-string.out non-null-string.out").getRet());
+      0, sh.exec("diff -u $DATA_DIR/sqoop-null-non-string.out non-null-string.out").getRet());
   }
 }

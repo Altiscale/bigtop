@@ -22,21 +22,23 @@
   <parent>
     <groupId>org.apache.bigtop.itest</groupId>
     <artifactId>stacks-common</artifactId>
-    <version>0.7.0-altiscale-SNAPSHOT</version>
-    <relativePath>../common/pom.xml</relativePath>
+
+    <version>1.0.0</version>
+   <relativePath>../common/pom.xml</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.bigtop.itest</groupId>
   <artifactId>smoke-tests</artifactId>
   <packaging>pom</packaging>
-  <version>0.7.0-altiscale-SNAPSHOT</version>
-  <name>hadoop-stack-validation</name>
+ <version>1.0.0</version>
+ <name>hadoop-stack-validation</name>
 
   <properties>
     <itest-conf.version>${project.version}</itest-conf.version>
     <itest-common.version>${project.version}</itest-common.version>
     <hadoop-smoke.version>${project.version}</hadoop-smoke.version>
+    <httpfs-smoke.version>${project.version}</httpfs-smoke.version>
     <flume-smoke.version>${project.version}</flume-smoke.version>
     <hbase-smoke.version>${project.version}</hbase-smoke.version>
     <hive-smoke.version>${project.version}</hive-smoke.version>
@@ -67,7 +69,11 @@
     <module>crunch</module>
     <module>flume</module>
 
+
     <!--
+    <module>httpfs</module>
+    <module>flume</module>
+
     <module>sqoop</module>
     -->
     <module>hcatalog</module>

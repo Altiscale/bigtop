@@ -23,13 +23,13 @@
   <parent>
     <groupId>org.apache.bigtop.itest</groupId>
     <artifactId>smoke-tests</artifactId>
-    <version>0.7.0-altiscale-SNAPSHOT</version>
+    <version>1.0.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <groupId>org.apache.bigtop.itest</groupId>
   <artifactId>hadoop-smoke-execution</artifactId>
-  <version>0.7.0-altiscale-SNAPSHOT</version>
+  <version>1.0.0</version>
   <name>Hadoop smoke test execution</name>
 
   <properties>
@@ -69,6 +69,36 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>1.0</version>
+        <executions>
+          <execution>
+            <id>enforce-property</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireProperty>
+                  <property>HADOOP_MAPRED_HOME</property>
+                  <message>HADOOP_MAPRED_HOME env. variable has to be set</message>
+                </requireProperty>
+                <requireProperty>
+                  <property>HADOOP_HOME</property>
+                  <message>HADOOP_HOME env. variable has to be set</message>
+                </requireProperty>
+                <requireProperty>
+                  <property>HADOOP_CONF_DIR</property>
+                  <message>HADOOP_CONF_DIR env. variable has to be set</message>
+                </requireProperty>
+              </rules>
+              <fail>true</fail>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>

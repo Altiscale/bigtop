@@ -117,6 +117,9 @@ cp -fa $DISTRO_DIR/schema.xml $PREFIX/$LIB_DIR/coreconfig-template
 
 install -d -m 0755 $PREFIX/$LIB_DIR/contrib
 cp -ra ${BUILD_DIR}/contrib/velocity $PREFIX/$LIB_DIR/contrib
+cp -ra ${BUILD_DIR}/contrib/map-reduce $PREFIX/$LIB_DIR/contrib
+cp -ra ${BUILD_DIR}/example/scripts/map-reduce $PREFIX/$LIB_DIR/contrib
+cp -ra ${BUILD_DIR}/contrib/morphlines* $PREFIX/$LIB_DIR/contrib
 
 install -d -m 0755 $PREFIX/$LIB_DIR/server/webapps/solr
 (cd $PREFIX/$LIB_DIR/server/webapps/solr ; jar xf ../../../*.war)
@@ -128,17 +131,22 @@ cat > $PREFIX/$LIB_DIR/server/webapps/ROOT/index.html <<__EOT__
 <html><head><meta http-equiv="refresh" content="0;url=./solr"></head><body><a href="/solr">Solr Console</a></body></html>
 __EOT__
 
-install -d -m 0755 $PREFIX/etc/solr/tomcat-deployment.dist/conf
-cp $DISTRO_DIR/web.xml $PREFIX/etc/solr/tomcat-deployment.dist/conf
-cp $DISTRO_DIR/server.xml $PREFIX/etc/solr/tomcat-deployment.dist/conf
-cp $DISTRO_DIR/logging.properties $PREFIX/etc/solr/tomcat-deployment.dist/conf
+install -m 0755 ${DISTRO_DIR}/tomcat-deployment.sh ${PREFIX}/${LIB_DIR}/tomcat-deployment.sh
+
+install -d -m 0755 $PREFIX/etc/solr/tomcat-conf.dist/conf
+cp $DISTRO_DIR/web.xml $PREFIX/etc/solr/tomcat-conf.dist/conf
+cp $DISTRO_DIR/server.xml $PREFIX/etc/solr/tomcat-conf.dist/conf
+cp $DISTRO_DIR/logging.properties $PREFIX/etc/solr/tomcat-conf.dist/conf
+
+install -d -m 0755 $PREFIX/etc/solr/tomcat-conf.dist/WEB-INF
+mv $PREFIX/$LIB_DIR/webapps/solr/WEB-INF/*.xml $PREFIX/etc/solr/tomcat-conf.dist/WEB-INF/ || :
 
 cp -ra ${BUILD_DIR}/dist/*.*ar $PREFIX/$LIB_DIR
 cp -ra ${BUILD_DIR}/dist/solrj-lib $PREFIX/$LIB_DIR/lib
 
 install -d -m 0755 $PREFIX/$LIB_DIR/bin
-cp -a ${BUILD_DIR}/example/cloud-scripts/*.sh $PREFIX/$LIB_DIR/bin
-sed -i -e 's#/../solr-webapp/webapp/WEB-INF/lib/#/../server/webapps/solr/WEB-INF/lib/#' $PREFIX/$LIB_DIR/bin/zkcli.sh
+cp -a ${BUILD_DIR}/example/scripts/cloud-scripts/*.sh $PREFIX/$LIB_DIR/bin
+sed -i -e 's#/../solr-webapp/webapp/WEB-INF/lib/#/../webapps/solr/WEB-INF/lib/#' $PREFIX/$LIB_DIR/bin/zkcli.sh
 chmod 755 $PREFIX/$LIB_DIR/bin/*
 
 install -d -m 0755 $PREFIX/$DOC_DIR
@@ -260,9 +268,17 @@ export CATALINA_OPTS="${CATALINA_OPTS} -Dsolr.host=$HOSTNAME
                                         -Dsolr.admin.port=$SOLR_ADMIN_PORT
                                         -Dsolr.solr.home=$SOLR_HOME"
 
-# FIXME: for some reason catalina doesn't use CATALINA_OPTS for stop action
-#        and thus doesn't know the admin port
-export JAVA_OPTS="$CATALINA_OPTS"
+#  catalina doesn't use CATALINA_OPTS for stop action so we need to 
+# set JAVA_OPTS to include the admin port
+if [ $1 = "stop" ] ; then
+    export JAVA_OPTS="$CATALINA_OPTS"
+fi
+
+if [ -x /usr/lib/bigtop-utils/bigtop-monitor-service ]; then
+if ([ "$1" = "start" -o "$1" = "run" ]) && [ -n "$SOLRD_WATCHDOG_TIMEOUT" ] ; then
+  /usr/lib/bigtop-utils/bigtop-monitor-service $SOLRD_WATCHDOG_TIMEOUT $$ http://127.0.0.1:8983/solr
+fi
+fi
 
 exec ${CATALINA_HOME}/bin/catalina.sh "$@"
 EOF

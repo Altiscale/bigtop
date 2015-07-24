@@ -36,6 +36,8 @@
 # Autodetect JAVA_HOME if not defined
 . /usr/lib/bigtop-utils/bigtop-detect-javahome
 
+. /etc/default/zookeeper
+
 STATUS_RUNNING=0
 STATUS_DEAD=1
 STATUS_DEAD_AND_LOCK=2
@@ -47,7 +49,7 @@ RETVAL=0
 EXEC_PATH="/usr/bin/zookeeper-server"
 NAME=zookeeper-server
 DESC="$NAME"
-PIDFILE=/var/run/zookeeper/zookeeper-server.pid
+PIDFILE=/var/run/zookeeper/zookeeper_server.pid
 LOCKFILE="/var/lock/subsys/zookeeper"
 USER=zookeeper
 

@@ -141,8 +141,18 @@ install -d -m 0755 $PREFIX/$ETC_DIR/conf.empty
 sed -i -e "s|flume\.log\.dir=.*|flume.log.dir=/var/log/flume|" $PREFIX/$ETC_DIR/conf.empty/log4j.properties
 touch $PREFIX/$ETC_DIR/conf.empty/flume.conf
 
+(cd $PREFIX/$ETC_DIR/conf.empty/; cp flume-env.sh.template flume-env.sh)
+cat >> $PREFIX/$ETC_DIR/conf.empty/flume-env.sh <<EOF
+
+HADOOP_HOME=\${HADOOP_HOME:-/usr/lib/hadoop}
+
+EOF
+
 unlink $PREFIX/$LIB_DIR/conf || /bin/true
 ln -s /etc/flume/conf $PREFIX/$LIB_DIR/conf
+
+
+mkdir -p $PREFIX/$LIB_DIR/plugins.d
 
 # Docs
 rm -rf $PREFIX/$LIB_DIR/docs
@@ -153,7 +163,7 @@ for x in CHANGELOG \
           NOTICE \
           README \
           RELEASE-NOTES ; do
-  if [ -x $x ] ; then
+  if [ -e $x ] ; then
     cp -r $x $PREFIX/${DOC_DIR}
   fi
 done

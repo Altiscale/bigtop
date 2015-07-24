@@ -81,10 +81,10 @@ while true ; do
         PYTHON_DIR=$2 ; shift 2
         ;;
         --hcatalog-dir)
-        HCATALOG__DIR=$2 ; shift 2
+        HCATALOG_DIR=$2 ; shift 2
         ;;
         --installed-hcatalog-dir)
-        INSTALLED_HCATALOG__DIR=$2 ; shift 2
+        INSTALLED_HCATALOG_DIR=$2 ; shift 2
         ;;
         --)
         shift ; break
@@ -120,8 +120,8 @@ CONF_DIST_DIR=/etc/hive/conf.dist
 # First we'll move everything into lib
 install -d -m 0755 ${HIVE_DIR}
 (cd ${BUILD_DIR} && tar -cf - .)|(cd ${HIVE_DIR} && tar -xf -)
-
-for jar in `ls ${HIVE_DIR}/lib/hive-*.jar`; do
+rm -f ${HIVE_DIR}/lib/hive-shims-0.2*.jar
+for jar in `ls ${HIVE_DIR}/lib/hive-*.jar | grep -v 'standalone.jar'`; do
     base=`basename $jar`
     (cd ${HIVE_DIR}/lib && ln -s $base ${base/-[0-9].*/.jar})
 done
@@ -139,7 +139,9 @@ do
 #!/bin/bash
 
 # Autodetect JAVA_HOME if not defined
-. /usr/lib/bigtop-utils/bigtop-detect-javahome
+if [ -e /usr/lib/bigtop-utils/bigtop-detect-javahome ]; then
+  . /usr/lib/bigtop-utils/bigtop-detect-javahome
+fi
 
 BIGTOP_DEFAULTS_DIR=\${BIGTOP_DEFAULTS_DIR-/etc/default}
 [ -n "\${BIGTOP_DEFAULTS_DIR}" -a -r \${BIGTOP_DEFAULTS_DIR}/hbase ] && . \${BIGTOP_DEFAULTS_DIR}/hbase
@@ -210,10 +212,14 @@ done
 wrapper=$BIN_DIR/hcat
 cat >>$wrapper <<EOF
 #!/bin/sh
-. /etc/default/hadoop
+
+BIGTOP_DEFAULTS_DIR=${BIGTOP_DEFAULTS_DIR-/etc/default}
+[ -n "${BIGTOP_DEFAULTS_DIR}" -a -r ${BIGTOP_DEFAULTS_DIR}/hadoop ] && . ${BIGTOP_DEFAULTS_DIR}/hadoop
 
 # Autodetect JAVA_HOME if not defined
-. /usr/lib/bigtop-utils/bigtop-detect-javahome
+if [ -e /usr/lib/bigtop-utils/bigtop-detect-javahome ]; then
+  . /usr/lib/bigtop-utils/bigtop-detect-javahome
+fi
 
 # FIXME: HCATALOG-636 (and also HIVE-2757)
 export HIVE_HOME=/usr/lib/hive
@@ -239,3 +245,16 @@ install -d -m 0755 $PREFIX/var/log/hive
 
 install -d -m 0755 $PREFIX/var/lib/hive-hcatalog
 install -d -m 0755 $PREFIX/var/log/hive-hcatalog
+for DIR in ${HCATALOG_SHARE_DIR} ; do
+    (cd $DIR &&
+     for j in hive-hcatalog-*.jar; do
+       if [[ $j =~ hive-hcatalog-(.*)-${HIVE_VERSION}.jar ]]; then
+         name=${BASH_REMATCH[1]}
+         ln -s $j hive-hcatalog-$name.jar
+       fi
+    done)
+done
+
+# Remove Windows files
+find ${HIVE_DIR}/bin -name '*.cmd' | xargs rm -f
+find ${HCATALOG_DIR}/bin -name '*.cmd' | xargs rm -f

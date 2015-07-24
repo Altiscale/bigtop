@@ -14,57 +14,21 @@
 # limitations under the License.
 
 class bigtop_toolchain::jdk {
-  case $::lsbdistcodename{
-    precise: {
-      package {'python-software-properties':
-        ensure => present,
-      }
 
-      exec {'/usr/bin/apt-add-repository -y ppa:webupd8team/java':
-        unless  => '/usr/bin/test -f /etc/apt/sources.list.d/webupd8team-java-precise.list',
-        require => Package['python-software-properties'],
-      }
-
-      exec {'/usr/bin/apt-get update':
-        refreshonly => true,
-        subscribe   => Exec['/usr/bin/apt-add-repository -y ppa:webupd8team/java'],
-        require     => Exec['/usr/bin/apt-add-repository -y ppa:webupd8team/java'],
-      }
-
-      exec {"accept-license1":
-        command     => "echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections",
-        path        => ["/bin", "/usr/bin"],
-        require     => Exec['/usr/bin/apt-get update'],
-        refreshonly => true,
-        subscribe   => Exec['/usr/bin/apt-get update'],
-      }
-
-      exec {"accept-license2":
-        command     => "echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections",
-        path        => ["/bin", "/usr/bin"],
-        require     => Exec["accept-license1"],
-        refreshonly => true,
-        subscribe   => Exec["accept-license1"],
-      }
-
-      package {'oracle-java6-installer':
-        ensure  => present,
-        require => Exec["accept-license2"],
+  case $operatingsystem{
+    Debian,Ubuntu: {
+      package { 'openjdk-7-jdk' :
+        ensure => present
       }
     }
-    default: {
-      file { '/tmp/jdk-6u45-linux-amd64.rpm':
-        source => 'puppet:///modules/bigtop_toolchain/jdk-6u45-linux-amd64.rpm',
-        ensure => present,
-        owner  => root,
-        group  => root,
-        mode   => 755
+    /(CentOS|Fedora|Amazon)/: {
+      package { 'java-1.7.0-openjdk-devel' :
+        ensure => present
       }
-  
-      exec {'/bin/rpm -Uvh /tmp/jdk-6u45-linux-amd64.rpm':
-        cwd         => '/tmp',
-        refreshonly => true,
-        subscribe   => File["/tmp/jdk-6u45-linux-amd64.rpm"],
+    }
+    /(OpenSuSE)/: {
+      package { 'java-1_7_0-openjdk-devel' :
+        ensure => present
       }
     }
   }

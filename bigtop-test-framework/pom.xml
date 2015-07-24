@@ -21,14 +21,14 @@
   <parent>
     <groupId>org.apache.bigtop</groupId>
     <artifactId>bigtop</artifactId>
-    <version>0.7.0-altiscale-SNAPSHOT</version>
+    <version>1.0.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
     
   <groupId>org.apache.bigtop.itest</groupId>
   <artifactId>itest-common</artifactId>
   <name>iTest: system and integration testing in the cloud</name>
-  <version>0.7.0-altiscale-SNAPSHOT</version>
+  <version>1.0.0</version>
 
 
   <dependencies>
@@ -61,16 +61,43 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.7</version>
+          <configuration>
+            <excludes>
+              <exclude>**/*IntegrationTest*</exclude>
+            </excludes>
+          </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.codehaus.groovy</groupId>
         <artifactId>groovy-eclipse-compiler</artifactId>
         <version>${groovy-eclipse-compiler.version}</version>
         <extensions>true</extensions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.17</version>
+        <configuration>
+          <includes>
+            <include>**/*IntegrationTest*</include>
+          </includes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
+        <version>${maven-compiler-plugin.version}</version>
         <configuration>
           <compilerId>groovy-eclipse-compiler</compilerId>
           <source>1.6</source>

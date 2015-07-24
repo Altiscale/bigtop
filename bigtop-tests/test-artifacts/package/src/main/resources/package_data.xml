@@ -30,6 +30,18 @@
       <url>http://commons.apache.org/daemon/</url>
     </metadata>
   </bigtop-jsvc>
+
+  <bigtop-groovy>
+    <metadata>
+      <summary>An agile and dynamic language for the Java Virtual Machine</summary>
+      <description>Groovy provides a JVM based runtime environment for function programming and scripting.</description>
+      <url>http://groovy.codehaus.org/</url>
+    </metadata>
+    <deps>
+      <bigtop-utils/>
+    </deps>
+  </bigtop-groovy>
+
   <bigtop-tomcat>
     <metadata>
       <summary>Apache Tomcat</summary>
@@ -90,7 +102,7 @@ Java Servlet and JavaServer Pages technologies.</description>
       </giraph-conf>
     </alternatives>
   </giraph>
-  <spark>
+  <spark-core>
     <metadata>
       <summary>Lightning-Fast Cluster Computing</summary>
       <description>Spark is a MapReduce-like cluster computing framework designed to support
@@ -98,7 +110,7 @@ low-latency iterative jobs and interactive use from an interpreter. It is
 written in Scala, a high-level language for the JVM, and exposes a clean
 language-integrated syntax that makes it easy to write parallel jobs.
 Spark runs on top of the Apache Mesos cluster manager.</description>
-      <url>http://spark.incubator.apache.org/</url>
+      <url>http://spark.apache.org/</url>
     </metadata>
     <deps>
       <bigtop-utils/>
@@ -111,25 +123,37 @@ Spark runs on top of the Apache Mesos cluster manager.</description>
         <alt>/etc/spark/conf.dist</alt>
       </spark-conf>
     </alternatives>
-  </spark>
-  <whirr>
+  </spark-core>
+  <spark-master>
     <metadata>
-      <summary>Scripts and libraries for running software services on cloud infrastructure.</summary>
-      <description>Whirr provides
- .
-  * A cloud-neutral way to run services. You don't have to worry about the
-    idiosyncrasies of each provider.
-  * A common service API. The details of provisioning are particular to the
-    service.
-  * Smart defaults for services. You can get a properly configured system
-    running quickly, while still being able to override settings as needed.
-    </description>
-      <url>http://whirr.apache.org/</url>
+      <summary>Server for Spark master</summary>
+      <description>Server for Spark master</description>
+      <url>http://spark.apache.org/</url>
     </metadata>
     <deps>
-      <bigtop-utils/>
+      <spark>/self</spark>
     </deps>
-  </whirr>
+  </spark-master>
+  <spark-worker>
+    <metadata>
+      <summary>Server for Spark worker</summary>
+      <description>Server for Spark worker</description>
+      <url>http://spark.apache.org/</url>
+    </metadata>
+    <deps>
+      <spark>/self</spark>
+    </deps>
+  </spark-worker>
+  <spark-python>
+    <metadata>
+      <summary>Python client for Spark</summary>
+      <description>Includes PySpark, an interactive Python shell for Spark, and related libraries</description>
+      <url>http://spark.apache.org/</url>
+    </metadata>
+    <deps>
+      <spark>/self</spark>
+    </deps>
+  </spark-python>
   <flume>
     <metadata>
       <summary>Flume is a reliable, scalable, and manageable distributed log collection application for collecting data such as logs and delivering it to data stores such as Hadoop's HDFS.</summary>
@@ -303,7 +327,7 @@ when more advanced customization is required.</description>
  In case of workflow job failure, the workflow job can be rerun skipping
  previously completed actions, the workflow application can be patched before
  being rerun.</description>
-      <url>http://incubator.apache.org/oozie/</url>
+      <url>http://oozie.apache.org/</url>
     </metadata>
     <deps>
       <oozie-client>/self</oozie-client>
@@ -333,7 +357,7 @@ such operations, you can also change the status of the entire
 system, get vesion information. This client utility also allows
 you to validate any worflows before they are deployed to the Oozie
 server.</description>
-      <url>http://incubator.apache.org/oozie/</url>
+      <url>http://oozie.apache.org/</url>
     </metadata>
     <deps>
       <hadoop/>
@@ -378,8 +402,8 @@ server.</description>
     <metadata>
       <summary>Simple and Efficient MapReduce Pipelines.</summary>
       <description>Apache Crunch is a Java library for writing, testing, and running
-MapReduce pipelines, based on Google's FlumeJava. Its goal is to make 
-pipelines that are composed of many user-defined functions simple to write, 
+MapReduce pipelines, based on Google's FlumeJava. Its goal is to make
+pipelines that are composed of many user-defined functions simple to write,
 easy to test, and efficient to run.</description>
       <url>http://crunch.apache.org/</url>
     </metadata>
@@ -587,7 +611,48 @@ easy to test, and efficient to run.</description>
       <hive-webhcat>/self</hive-webhcat>
     </deps>
   </hive-webhcat-server>
-  <hbase>
+  <gridgain-hadoop>
+    <metadata>
+      <summary>gridgain Hadoop accelerator. The system provides for in-memory caching of HDFS data and MR performance improvements</summary>
+      <description>GridGain is an open-source, distributed, in-memory computation platform
+
+        * HDFS caching and MR performance booster
+
+      </description>
+      <url>http://gridgain.org/</url>
+    </metadata>
+    <deps>
+      <hadoop-hdfs/>
+      <hadoop-mapreduce/>
+      <bigtop-utils/>
+    </deps>
+    <alternatives>
+      <gridgain-hadoop-conf>
+        <status>auto</status>
+        <link>/etc/gridgain-hadoop/conf</link>
+        <value>/etc/gridgain-hadoop/conf.dist</value>
+        <alt>/etc/gridgain-hadoop/conf.dist</alt>
+      </gridgain-hadoop-conf>
+    </alternatives>
+  </gridgain-hadoop>
+    <gridgain-hadoop-service>
+      <metadata>
+        <summary>Hadoop Accelerator platform</summary>
+        <description>GridGain is an open-source, distributed, in-memory computation platform</description>
+        <url>http://gridgain.org/</url>
+      </metadata>
+      <deps>
+        <gridgain-hadoop/>
+      </deps>
+    </gridgain-hadoop-service>
+    <gridgain-hadoop-doc>
+      <metadata>
+        <summary>Gridgain Documentation</summary>
+        <description>Documentation for GridGain platform</description>
+        <url>http://gridgain.org/</url>
+      </metadata>
+    </gridgain-hadoop-doc>
+    <hbase>
     <metadata>
       <summary>HBase is the Hadoop database. Use it when you need random, realtime read/write access to your Big Data. This project's goal is the hosting of very large tables -- billions of rows X millions of columns -- atop clusters of commodity hardware.</summary>
       <description>HBase is an open-source, distributed, column-oriented store modeled after Google' Bigtable: A Distributed Storage System for Structured Data by Chang et al. Just as Bigtable leverages the distributed data storage provided by the Google File System, HBase provides Bigtable-like capabilities on top of Hadoop. HBase includes:
@@ -679,7 +744,7 @@ use of the HBase API, along with coprocessors and custom filters, results in
 performance on the order of milliseconds for small queries, or seconds for
 tens of millions of rows. Applications interact with Phoenix through a
 standard JDBC interface; all the usual interfaces are supported.</description>
-      <url>https://github.com/forcedotcom/phoenix</url>
+      <url>http://phoenix.apache.org</url>
     </metadata>
     <deps>
       <zookeeper/>
@@ -998,6 +1063,17 @@ It supports a file browser, job tracker interface, cluster health monitor, and m
       <hue-common>/self</hue-common>
     </deps>
   </hue-server>
+  <hue-doc>
+    <metadata>
+      <summary>Documentation for Hue</summary>
+      <description>This package provides the installation manual, user guide, SDK documentation, and release notes.</description>
+      <url>http://github.com/cloudera/hue</url>
+    </metadata>
+    <deps>
+    </deps>
+    <alternatives>
+    </alternatives>
+  </hue-doc>
   <hue-beeswax>
     <metadata>
       <summary>A UI for Hive on Hue</summary>

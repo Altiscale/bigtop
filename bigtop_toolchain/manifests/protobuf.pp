@@ -14,22 +14,67 @@
 # limitations under the License.
 
 class bigtop_toolchain::protobuf {
+
+  include bigtop_toolchain::deps
+
   case $operatingsystem{
-    Ubuntu: {
-      notify {"Ubuntu provides protobuf in repo":}
-    }
-    default:{
-      file { '/etc/yum.repos.d/mrdocs-protobuf-rpm.repo':
-        source => 'puppet:///modules/bigtop_toolchain/mrdocs-protobuf-rpm.repo',
-        ensure => present,
-        owner  => root,
-        group  => root,
-        mode   => 755,
+    /Ubuntu|Debian/: {
+      exec { '/usr/bin/wget https://launchpad.net/ubuntu/+archive/primary/+files/libprotobuf8_2.5.0-9ubuntu1_amd64.deb':
+        cwd     => "/usr/src",
+        require => Package[$packages::pkgs],
+        unless  => "/usr/bin/test -f /usr/src/libprotobuf8_2.5.0-9ubuntu1_amd64.deb",
       }
-  
+      exec { '/usr/bin/wget https://launchpad.net/ubuntu/+archive/primary/+files/libprotoc8_2.5.0-9ubuntu1_amd64.deb':
+        cwd     => "/usr/src",
+        require => Package[$packages::pkgs],
+        unless  => "/usr/bin/test -f /usr/src/libprotoc8_2.5.0-9ubuntu1_amd64.deb",
+      }
+      exec { '/usr/bin/wget https://launchpad.net/ubuntu/+archive/primary/+files/protobuf-compiler_2.5.0-9ubuntu1_amd64.deb':
+        cwd     => "/usr/src",
+        require => Package[$packages::pkgs],
+        unless  => "/usr/bin/test -f /usr/src/protobuf-compiler_2.5.0-9ubuntu1_amd64.deb",
+      }
+      exec {'/usr/bin/dpkg -i protobuf-compiler_2.5.0-9ubuntu1_amd64.deb':
+        unless  => "/usr/bin/test -f /usr/bin/protoc",
+        cwd     => "/usr/src",
+        require => [ EXEC["/usr/bin/dpkg -i libprotoc8_2.5.0-9ubuntu1_amd64.deb"],EXEC["/usr/bin/wget https://launchpad.net/ubuntu/+archive/primary/+files/protobuf-compiler_2.5.0-9ubuntu1_amd64.deb"] ]
+      }
+      exec {'/usr/bin/dpkg -i libprotoc8_2.5.0-9ubuntu1_amd64.deb':
+        unless  => "/usr/bin/test -f /usr/bin/protoc",
+        cwd     => "/usr/src",
+        require => [ EXEC["/usr/bin/dpkg -i libprotobuf8_2.5.0-9ubuntu1_amd64.deb"],EXEC["/usr/bin/wget https://launchpad.net/ubuntu/+archive/primary/+files/libprotoc8_2.5.0-9ubuntu1_amd64.deb"] ]
+      }
+      exec {'/usr/bin/dpkg -i libprotobuf8_2.5.0-9ubuntu1_amd64.deb':
+        unless  => "/usr/bin/test -f /usr/bin/protoc",
+        cwd     => "/usr/src",
+        require => EXEC["/usr/bin/wget https://launchpad.net/ubuntu/+archive/primary/+files/libprotobuf8_2.5.0-9ubuntu1_amd64.deb"],
+      }
+    }
+    default: {
+      case $operatingsystem {
+         /(?i:(centos|fedora|amazon))/: {
+           yumrepo { "protobuf":
+             baseurl => "http://download.opensuse.org/repositories/home:/mrdocs:/protobuf-rpm/CentOS_CentOS-6/",
+             descr => "Bigtop protobuf repo",
+             enabled => 1,
+             priority => 1,
+             gpgcheck => 0
+           }
+           exec { 'install_mrdocs_repo':
+             command => '/bin/true',
+             require => Yumrepo['protobuf'],
+           }
+         }
+         /(?i:(SLES|opensuse))/:{
+           exec { 'install_mrdocs_repo':
+              command => '/usr/bin/zypper ar --no-gpgcheck http://download.opensuse.org/repositories/home:/mrdocs:/protobuf-rpm/openSUSE_12.3/ protobuf',
+              unless => "/usr/bin/zypper lr | grep -q protobuf",
+           }
+         }
+      }
       package { 'protobuf-devel':
         ensure => present,
-        require => File['/etc/yum.repos.d/mrdocs-protobuf-rpm.repo'],
+        require => Exec['install_mrdocs_repo'],
       }
     }
   }

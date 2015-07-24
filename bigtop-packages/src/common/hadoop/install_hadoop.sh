@@ -184,6 +184,9 @@ install -d -m 0755 ${SYSTEM_LIBEXEC_DIR}
 cp ${BUILD_DIR}/libexec/* ${SYSTEM_LIBEXEC_DIR}/
 cp ${DISTRO_DIR}/hadoop-layout.sh ${SYSTEM_LIBEXEC_DIR}/
 install -m 0755 ${DISTRO_DIR}/init-hdfs.sh ${SYSTEM_LIBEXEC_DIR}/
+install -m 0755 ${DISTRO_DIR}/init-hcfs.json ${SYSTEM_LIBEXEC_DIR}/
+install -m 0755 ${DISTRO_DIR}/init-hcfs.groovy ${SYSTEM_LIBEXEC_DIR}/
+rm -rf ${SYSTEM_LIBEXEC_DIR}/*.cmd
 
 # hadoop jar
 install -d -m 0755 ${HADOOP_DIR}
@@ -302,6 +305,7 @@ cp ${DISTRO_DIR}/conf.empty/mapred-site.xml $HADOOP_ETC_DIR/conf.empty
 # by default
 sed -i -e '/^[^#]/s,^,#,' ${BUILD_DIR}/etc/hadoop/hadoop-env.sh
 cp ${BUILD_DIR}/etc/hadoop/* $HADOOP_ETC_DIR/conf.empty
+rm -rf $HADOOP_ETC_DIR/conf.empty/*.cmd
 
 # docs
 install -d -m 0755 ${DOC_DIR}
@@ -309,8 +313,10 @@ cp -r ${BUILD_DIR}/share/doc/* ${DOC_DIR}/
 
 # man pages
 mkdir -p $MAN_DIR/man1
-gzip -c < $DISTRO_DIR/hadoop.1 > $MAN_DIR/man1/hadoop.1.gz
-chmod 644 $MAN_DIR/man1/hadoop.1.gz
+for manpage in hadoop hdfs yarn mapred; do
+	gzip -c < $DISTRO_DIR/$manpage.1 > $MAN_DIR/man1/$manpage.1.gz
+	chmod 644 $MAN_DIR/man1/$manpage.1.gz
+done
 
 # HTTPFS
 install -d -m 0755 ${HTTPFS_DIR}/sbin
@@ -318,9 +324,22 @@ cp ${BUILD_DIR}/sbin/httpfs.sh ${HTTPFS_DIR}/sbin/
 cp -r ${BUILD_DIR}/share/hadoop/httpfs/tomcat/webapps ${HTTPFS_DIR}/webapps
 install -d -m 0755 ${PREFIX}/var/lib/hadoop-httpfs
 install -d -m 0755 $HTTPFS_ETC_DIR/conf.empty
-install -d -m 0755 $HTTPFS_ETC_DIR/tomcat-deployment.dist
-cp -r ${BUILD_DIR}/share/hadoop/httpfs/tomcat/conf $HTTPFS_ETC_DIR/tomcat-deployment.dist/
-chmod 644 $HTTPFS_ETC_DIR/tomcat-deployment.dist/conf/*
+
+install -m 0755 ${DISTRO_DIR}/httpfs-tomcat-deployment.sh ${HTTPFS_DIR}/tomcat-deployment.sh
+
+HTTP_DIRECTORY=$HTTPFS_ETC_DIR/tomcat-conf.dist
+HTTPS_DIRECTORY=$HTTPFS_ETC_DIR/tomcat-conf.https
+
+install -d -m 0755 ${HTTP_DIRECTORY}
+cp -r ${BUILD_DIR}/share/hadoop/httpfs/tomcat/conf ${HTTP_DIRECTORY}
+chmod 644 ${HTTP_DIRECTORY}/conf/*
+install -d -m 0755 ${HTTP_DIRECTORY}/WEB-INF
+mv ${HTTPFS_DIR}/webapps/webhdfs/WEB-INF/*.xml ${HTTP_DIRECTORY}/WEB-INF/
+
+cp -r ${HTTP_DIRECTORY} ${HTTPS_DIRECTORY}
+mv ${HTTPS_DIRECTORY}/conf/ssl-server.xml ${HTTPS_DIRECTORY}/conf/server.xml
+rm ${HTTP_DIRECTORY}/conf/ssl-server.xml
+
 mv $HADOOP_ETC_DIR/conf.empty/httpfs* $HTTPFS_ETC_DIR/conf.empty
 sed -i -e '/<\/configuration>/i\
   <!-- HUE proxy user setting -->\
@@ -345,6 +364,7 @@ for conf in conf.pseudo ; do
   cp ${BUILD_DIR}/etc/hadoop/* $HADOOP_ETC_DIR/$conf
   # Remove the ones that shouldn't be installed
   rm -rf $HADOOP_ETC_DIR/$conf/httpfs*
+  rm -rf $HADOOP_ETC_DIR/$conf/*.cmd
   # Overlay the -site files
   (cd $DISTRO_DIR/$conf && tar -cf - .) | (cd $HADOOP_ETC_DIR/$conf && tar -xf -)
   chmod -R 0644 $HADOOP_ETC_DIR/$conf/*

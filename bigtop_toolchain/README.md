@@ -1,36 +1,36 @@
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements. See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 bigtop-toolchain
 ===============
 
 ##BigTop Toolchain Deployment through Puppet
 
-Ian Mordey <ian.mordey@wandisco.com>
+Puppet module for configuring a host for building BigTop. It installs:
 
-Puppet module for configuring a CentOS host for building BigTop. It installs:
+**Apache Ant 1.9.4**
 
-**Apache Ant 1.9.2**
-
-**Apache Forrest 0.9**
-
-**Oracle JDK 1.6u45**
+**OpenJDK 1.7**
 
 **Apache Maven 3.0.5**
 
-**Protobuf 2.4.1**
+**Gradle 2.0**
+
+**Protobuf 2.5.0**
+
+**Scala 2.10.3**
 
 ##Usage
 
@@ -40,8 +40,8 @@ These can be indivdually applied using:
 	node "node1.example.com" {
 	  include bigtop_toolchain::jdk
 	  include bigtop_toolchain::maven
-	  include bigtop_toolchain::forrest
 	  include bigtop_toolchain::ant
+	  include bigtop_toolchain::gradle
 	  include bigtop_toolchain::protobuf
 	  include bigtop_toolchain::packages
 	  include bigtop_toolchain::env
@@ -56,15 +56,15 @@ Or installed as a whole with:
 
 It will create a user jenkins with the required  environment variables set for
 building BigTop:
+```
+MAVEN_HOME=/usr/local/maven
+JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk.x86_64
+ANT_HOME=/usr/local/ant
+SCALA_HOME=/usr/share/java
+GRADLE_HOME=/usr/local/gradle
+PATH=$MAVEN_HOME/bin:$ANT_HOME/bin:$FORREST_HOME/bin:$GRADLE_HOME/bin:$PATH
+```
 
-	MAVEN_HOME=/usr/local/maven
-	PATH=$PATH:$MAVEN_HOME/bin
-	JAVA_HOME=/usr/java/latest
-	ANT_HOME=/usr/local/ant
-	PATH=$PATH:$ANT_HOME/bin
-	FORREST_HOME=/usr/local/apache-forrest
-	PATH=$PATH:$FORREST_HOME/bin
-	
 If you do not want to use a puppet master this module can be applied
 standalone with a command such as:
 
@@ -72,14 +72,30 @@ standalone with a command such as:
 	
 where <path_to_bigtop> is the cloned git repo.
 
+## Installation of Tools for Bigtop Deployment
+
+This is a separated set of manifests that helps to setup tools for Bigtop deployment.
+The usage is as below:
+
+	puppet apply --modulepath=<path_to_bigtop> -e "include bigtop_toolchain::deployment-tools"
+
+By applying the snippet, Vagrant will be installed(the Docker installation will be added soon).
+
+## Optional development tools
+
+This isn't a part of fundamental toolchain recipes as we are trying to contain the size of CI and dev-
+images of docker containers.
+As Groovy isn't required (yet!) for creation of a Bigtop stack, this environment is separated for now
+In case you system doesn't have already installed version of Bigtop recommended Groovy environment,
+you should be able to so easily by running
+
+	puppet apply --modulepath=<path_to_bigtop> -e "include bigtop_toolchain::development-tools"
+
+Potentially, we'll be adding more development tools in this manifest.
+
 ## Requirements
 
-Due to redistribution restrictions the Oracle JDK must be downloaded seperately. 
-
-Download the JDK 64bit rpm.bin file, run it with the -x switch to extract the
-rpm file and copy jdk-6u45-linux-amd64.rpm to files/.
-
-The Ant/Maven/Forrest sources will be downloaded automatically. If you already
+The Ant/Maven/Forrest/Gradle sources will be downloaded automatically. If you already
 have them and do not want to download them again please copy the source
 .tar.gz files into /usr/src.
 

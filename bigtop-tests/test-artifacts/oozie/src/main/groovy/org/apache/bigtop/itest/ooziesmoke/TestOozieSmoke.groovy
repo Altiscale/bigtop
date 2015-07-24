@@ -62,13 +62,13 @@ class TestOozieSmoke {
             "hadoop fs -mkdir ${tmp_dir}",
             "hadoop fs -put examples ${tmp_dir}");
     assertEquals("Failed to put examples onto HDFS",
-                 0, sh.ret);
+      0, sh.ret);
   }
 
   @AfterClass
   static void tearDown() {
     sh.exec("rm -rf /tmp/${tmp_dir}",
-            "hadoop fs -rmr ${tmp_dir}");
+      "hadoop fs -rmr ${tmp_dir}");
   }
 
   void testOozieExamplesCommon(String testname) {
@@ -76,14 +76,14 @@ class TestOozieSmoke {
             "-DexamplesRoot=${tmp_dir}/examples -config /tmp/${tmp_dir}/examples/apps/${testname}/job.properties");
             logError(sh);  
     assertEquals("Oozie job submition ${testname} failed",
-                 0, sh.ret);
+      0, sh.ret);
 
-    String jobId = sh.out[0].replaceAll(/job: /,"");
+    String jobId = sh.out[0].replaceAll(/job: /, "");
     while (sh.exec("oozie job -oozie ${oozie_url} -info ${jobId}").out.join(' ') =~ /Status\s*:\s*RUNNING/) {
       sleep(WAIT_TIMEOUT);
     }
     assertTrue("Oozie job ${testname} returned ${sh.out.join(' ')} instead of SUCCEEDED",
-               (sh.out.join(' ') =~ /Status\s*:\s*SUCCEEDED/).find());
+      (sh.out.join(' ') =~ /Status\s*:\s*SUCCEEDED/).find());
   }
 
 @Category ( EssentialTests.class )

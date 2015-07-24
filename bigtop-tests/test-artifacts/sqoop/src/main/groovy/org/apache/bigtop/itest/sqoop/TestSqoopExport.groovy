@@ -53,15 +53,15 @@ class TestSqoopExport {
 
   private static final String MYSQL_COMMAND =
     "mysql -h $MYSQL_HOST --user=$MYSQL_USER" +
-    (("".equals(MYSQL_PASSWORD)) ? "" : " --password=$MYSQL_PASSWORD");
+      (("".equals(MYSQL_PASSWORD)) ? "" : " --password=$MYSQL_PASSWORD");
   private static final String MYSQL_DBNAME = System.getProperty("mysql.dbname", "mysqltestdb");
   private static final String SQOOP_CONNECTION_STRING =
     "jdbc:mysql://$MYSQL_HOST/$MYSQL_DBNAME";
   private static final String SQOOP_CONNECTION =
     "--connect jdbc:mysql://$MYSQL_HOST/$MYSQL_DBNAME --username=$MYSQL_USER" +
-    (("".equals(MYSQL_PASSWORD)) ? "" : " --password=$MYSQL_PASSWORD");
+      (("".equals(MYSQL_PASSWORD)) ? "" : " --password=$MYSQL_PASSWORD");
   static {
-    System.out.println("SQOOP_CONNECTION string is " + SQOOP_CONNECTION );
+    System.out.println("SQOOP_CONNECTION string is " + SQOOP_CONNECTION);
   }
   private static final String DATA_DIR = System.getProperty("data.dir", "mysql-files");
   private static final String INPUT = System.getProperty("input.dir", "/tmp/input-dir");
@@ -75,7 +75,7 @@ class TestSqoopExport {
     if (sh.getRet() == 0) {
       sh.exec("hadoop fs -rmr -skipTrash $INPUT");
       assertTrue("Deletion of previous $INPUT from HDFS failed",
-          sh.getRet() == 0);
+        sh.getRet() == 0);
     }
     sh.exec("sed -i s/MYSQLHOST/$MYSQL_HOST/g $DATA_DIR/mysql-create-user.sql");
     my.exec("mysql test < $DATA_DIR/mysql-create-user.sql");
@@ -96,7 +96,7 @@ class TestSqoopExport {
     assertTrue("Could not create $INPUT/t_int directory", sh.getRet() == 0);
 
     // unpack resource
-    JarContent.unpackJarContainer(TestSqoopExport.class, '.' , null)
+    JarContent.unpackJarContainer(TestSqoopExport.class, '.', null)
 
     // upload data to HDFS 
     sh.exec("hadoop fs -put $DATA_DIR/sqoop-testtable.out $INPUT/testtable/part-m-00000");
@@ -104,8 +104,8 @@ class TestSqoopExport {
     sh.exec("hadoop fs -copyFromLocal $DATA_DIR/sqoop-t_date-export.out $INPUT/t_date/part-m-00000");
     sh.exec("hadoop fs -copyFromLocal $DATA_DIR/sqoop-t_string.out $INPUT/t_string/part-m-00000");
     sh.exec("hadoop fs -put $DATA_DIR/sqoop-t_fp.out $INPUT/t_fp/part-m-00000");
-    sh.exec("hadoop fs -put $DATA_DIR/sqoop-t_int.out $INPUT/t_int/part-m-00000"); 
-    
+    sh.exec("hadoop fs -put $DATA_DIR/sqoop-t_int.out $INPUT/t_int/part-m-00000");
+
     //create db
     sh.exec("cat $DATA_DIR/mysql-create-db.sql | $MYSQL_COMMAND");
     //create tables
@@ -120,7 +120,7 @@ class TestSqoopExport {
       if (sh.getRet() == 0) {
         sh.exec("hadoop fs -rmr -skipTrash $INPUT");
         assertTrue("Deletion of $INPUT from HDFS failed",
-            sh.getRet() == 0);
+          sh.getRet() == 0);
       }
     }
 

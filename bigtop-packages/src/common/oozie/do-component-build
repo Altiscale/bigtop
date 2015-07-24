@@ -78,7 +78,7 @@ fi
 
 ## Update hardcoded version of the Hadoop base to the current HADOOP VERSION
 ## This approach might need to be reconsidered once OOZIE-1201 is fixed
-OLD_VERSION="2.0.2-alpha"
+OLD_VERSION="2.3.0"
 echo "Replacing old target Hadoop version ${OLD_VERSION} with ${HADOOP_VERSION}"
 POM_FILES="${WORKDIR}/hadooplibs/hadoop-2/pom.xml ${WORKDIR}/hadooplibs/hadoop-distcp-2/pom.xml ${WORKDIR}/hadooplibs/hadoop-test-2/pom.xml ${WORKDIR}/pom.xml"
 for pom in $POM_FILES; do
@@ -90,8 +90,15 @@ for pom in $POM_FILES; do
   fi
 done
 
+# Disable Codehaus repository since it's out of service
+sed -i.bak "/http:\/\/repository.codehaus.org/a\\
+            <releases>\\
+                <enabled>false</enabled>\\
+            </releases>" ${WORKDIR}/pom.xml
+
+export MAVEN_OPTS="-Xmx512m -XX:MaxPermSize=128m"
 # Invoke Oozie build script
-${WORKDIR}/bin/mkdistro.sh -DskipTests -Dhadoop.version=${HADOOP_VERSION} ${EXTRA_GOALS} -Dmaven.repo.local=${HOME}/.m2/repository "$@"
+${WORKDIR}/bin/mkdistro.sh -DjavaVersion=${JDK_VERSION} -DskipTests -Dhadoop.version=${HADOOP_VERSION} -Dhadoop.auth.version=${HADOOP_VERSION} ${EXTRA_GOALS} -Dmaven.repo.local=${HOME}/.m2/repository "$@"
 MKDISTRO_RESULT=$?
 if [ "${MKDISTRO_RESULT}" != "0" ]; then
   echo "ERROR: mkdistro.sh failed with error ${MKDISTRO_RESULT}"

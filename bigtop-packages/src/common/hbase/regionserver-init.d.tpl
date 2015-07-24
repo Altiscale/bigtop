@@ -201,8 +201,11 @@ multi_hbase_daemon() {
         export HBASE_IDENT_STRING="hbase-${OFFSET}"
         LOG_FILE="$HBASE_LOG_DIR/hbase-$HBASE_IDENT_STRING-@HBASE_DAEMON@-$HOSTNAME.pid"
         PID_FILE="$HBASE_PID_DIR/hbase-$HBASE_IDENT_STRING-@HBASE_DAEMON@.pid"
-        HBASE_MULTI_ARGS="-D hbase.@HBASE_DAEMON@.port=`expr ${FIRST_PORT} + $OFFSET` \
-                          -D hbase.@HBASE_DAEMON@.info.port=`expr ${FIRST_INFO_PORT} + ${OFFSET}`"
+        HBASE_MULTI_ARGS="-D hbase.regionserver.port=`expr ${FIRST_PORT} + $OFFSET` \
+                          -D hbase.regionserver.info.port=`expr ${FIRST_INFO_PORT} + ${OFFSET}`"
+        if [ "x$JMXPORT" != "x" ] ; then
+            HBASE_MULTI_ARGS="${HBASE_MULTI_ARGS} -Dcom.sun.management.jmxremote.port=`expr ${JMXPORT} + ${OFFSET}`"
+        fi
         hbase_check_pidfile $PID_FILE
         STATUS=$?
         if [[ "$STATUS" == "0" && "$COMMAND" == "start" ]] ; then
@@ -305,22 +308,24 @@ start() {
     if [ -n "${OFFSETS_FROM_CLI}${OFFSETS_FROM_DEFAULT}" ] ; then
         if hbase_check_pidfile $PID_FILE ; then
             echo "$NAME has already been started - cannot start other @HBASE_DAEMON@ daemons."
-            exit 1
+            return 1
         fi
         multi_hbase_daemon "start"
-        exit $?
+        return $?
     fi
     multi_hbase_daemon_check_pidfiles > /dev/null
     if [ "$?" != "$NO_DAEMONS_RUNNING" ] ; then
       echo "Cannot start $NAME - other @HBASE_DAEMON@ daemons have already been started."
-      exit 1
+      return 1
     fi
     echo -n "Starting $DESC: "
     su -s /bin/bash hbase -c "$DAEMON_SCRIPT start @HBASE_DAEMON@"
     if hbase_check_pidfile $PID_FILE ; then
         echo "$NAME."
+        return $ALL_DAEMONS_RUNNING
     else
         echo "ERROR."
+        return $NO_DAEMONS_RUNNING
     fi
 }
 stop() {
@@ -333,8 +338,10 @@ stop() {
     su -s /bin/bash hbase -c "$DAEMON_SCRIPT stop @HBASE_DAEMON@"
     if hbase_check_pidfile $PID_FILE ; then
         echo "ERROR."
+        return 1
     else
         echo "$NAME."
+        return 0
     fi
 }
 
@@ -380,7 +387,7 @@ status() {
     else
         IFS=''
         echo $MULTI_HBASE_DAEMON_STATUS_TEXT
-        return $MULTI_HBASE_DAEMONS_STATUS
+        return $MULTI_HBASE_DAEMON_STATUS
     fi
 }
 
@@ -392,34 +399,42 @@ condrestart(){
     fi
 }
 
+RETVAL=0
+
 case "$1" in
   start)
         start
+        RETVAL=$?
   ;;
   stop)
         stop
+        RETVAL=$?
   ;;
   force-stop)
         force_stop
+        RETVAL=$?
   ;;
   force-reload)
         force_reload
+        RETVAL=$?
   ;;
   restart)
         restart
-        exit $?
+        RETVAL=$?
     ;;
   condrestart)
         condrestart
+        RETVAL=$?
   ;;
   status)
         status
+        RETVAL=$?
     ;;
   *)
   N=/etc/init.d/$NAME
   echo "Usage: $N {start|stop|restart|force-reload|status|force-stop|condrestart}" >&2
-  exit 1
+  RETVAL=1
   ;;
 esac
 
-exit 0
+exit ${RETVAL}

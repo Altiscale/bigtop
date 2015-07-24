@@ -30,7 +30,7 @@ import org.apache.bigtop.itest.interfaces.EssentialTests;
 
 @Category ( EssentialTests.class )
 public class TestFsck {
-  static Shell shHDFS = new Shell("/bin/bash", "hdfs" )
+  static Shell shHDFS = new Shell("/bin/bash", "hdfs")
   String[] fsckCmds = [
     "hdfs fsck /",
     "hdfs fsck -move /",

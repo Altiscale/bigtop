@@ -19,6 +19,7 @@
 %define run_zookeeper /var/run/%{name}
 %define vlb_zookeeper /var/lib/%{name}
 %define svc_zookeeper %{name}-server
+%define svc_zookeeper_rest %{name}-rest
 %define man_dir %{_mandir}
 
 %if  %{?suse_version:1}0
@@ -66,7 +67,7 @@ Summary: A high-performance coordination service for distributed applications.
 URL: http://zookeeper.apache.org/
 Group: Development/Libraries
 Buildroot: %{_topdir}/INSTALL/%{name}-%{version}
-License: APL2
+License: ASL 2.0
 Source0: %{name}-%{zookeeper_base_version}.tar.gz
 Source1: do-component-build
 Source2: install_zookeeper.sh
@@ -74,8 +75,11 @@ Source3: zookeeper-server.sh
 Source4: zookeeper-server.sh.suse
 Source5: zookeeper.1
 Source6: zoo.cfg
-BuildArch: noarch
-BuildRequires: autoconf, automake
+Source7: zookeeper.default
+Source8: init.d.tmpl
+Source9: zookeeper-rest.svc
+#BIGTOP_PATCH_FILES
+BuildRequires: autoconf, automake, cppunit-devel
 Requires(pre): coreutils, /usr/sbin/groupadd, /usr/sbin/useradd
 Requires(post): %{alternatives_dep}
 Requires(preun): %{alternatives_dep}
@@ -98,7 +102,6 @@ Requires: %{name} = %{version}-%{release}
 Requires(pre): %{name} = %{version}-%{release}
 Requires(post): %{chkconfig_dep}
 Requires(preun): %{service_dep}, %{chkconfig_dep}
-BuildArch: noarch
 
 %if  %{?suse_version:1}0
 # Required for init scripts
@@ -114,27 +117,48 @@ Requires: initscripts
 # So I will suppose anything that is not Mageia or a SUSE will be a RHEL/CentOS/Fedora
 %if %{!?suse_version:1}0 && %{!?mgaversion:1}0
 # Required for init scripts
-Requires: redhat-lsb
+Requires: /lib/lsb/init-functions
 %endif
 
 
 %description server
 This package starts the zookeeper server on startup
 
+%package rest
+Summary: ZooKeeper REST Server
+Group: System/Daemons
+Requires: %{name} = %{version}-%{release}
+Requires(pre): %{name} = %{version}-%{release}
+Requires(post): %{chkconfig_dep}
+Requires(preun): %{service_dep}, %{chkconfig_dep}
+
+%package native
+Summary: C bindings for ZooKeeper clients
+Group: Development/Libraries
+
+%description native
+Provides native libraries and development headers for C / C++ ZooKeeper clients. Consists of both single-threaded and multi-threaded implementations.
+
+%description rest
+This package starts the zookeeper REST server on startup
+
 %prep
 %setup -n %{name}-%{zookeeper_base_version}
+
+#BIGTOP_PATCH_COMMANDS
 
 %build
 bash %{SOURCE1}
 
 %install
 %__rm -rf $RPM_BUILD_ROOT
-cp $RPM_SOURCE_DIR/zookeeper.1 $RPM_SOURCE_DIR/zoo.cfg .
-sh %{SOURCE2} \
+cp $RPM_SOURCE_DIR/zookeeper.1 $RPM_SOURCE_DIR/zoo.cfg $RPM_SOURCE_DIR/zookeeper.default .
+bash %{SOURCE2} \
           --build-dir=build/%{name}-%{zookeeper_base_version} \
           --doc-dir=%{doc_zookeeper} \
-          --prefix=$RPM_BUILD_ROOT
-
+          --prefix=$RPM_BUILD_ROOT \
+          --system-include-dir=%{_includedir} \
+          --system-lib-dir=%{_libdir}
 
 %if  %{?suse_version:1}0
 orig_init_file=%{SOURCE4}
@@ -147,6 +171,9 @@ init_file=$RPM_BUILD_ROOT/%{initd_dir}/%{svc_zookeeper}
 %__cp $orig_init_file $init_file
 chmod 755 $init_file
 
+# Install Zookeeper REST server init script
+init_file=$RPM_BUILD_ROOT/%{initd_dir}/zookeeper-rest
+bash $RPM_SOURCE_DIR/init.d.tmpl $RPM_SOURCE_DIR/zookeeper-rest.svc rpm $init_file
 
 %pre
 getent group zookeeper >/dev/null || groupadd -r zookeeper
@@ -179,8 +206,19 @@ if [ $1 -ge 1 ]; then
         service %{svc_zookeeper} condrestart > /dev/null 2>&1
 fi
 
-%files server
-	%attr(0755,root,root) %{initd_dir}/%{svc_zookeeper}
+%post rest
+	chkconfig --add %{svc_zookeeper_rest}
+
+%preun rest
+if [ $1 = 0 ] ; then
+	service %{svc_zookeeper_rest} stop > /dev/null 2>&1
+	chkconfig --del %{svc_zookeeper_rest}
+fi
+
+%postun rest
+if [ $1 -ge 1 ]; then
+        service %{svc_zookeeper_rest} condrestart > /dev/null 2>&1
+fi
 
 #######################
 #### FILES SECTION ####
@@ -188,6 +226,7 @@ fi
 %files
 %defattr(-,root,root)
 %config(noreplace) %{etc_zookeeper}/conf.dist
+%config(noreplace) /etc/default/zookeeper
 %{lib_zookeeper}
 %{bin_zookeeper}/zookeeper-server
 %{bin_zookeeper}/zookeeper-server-initialize
@@ -195,3 +234,18 @@ fi
 %{bin_zookeeper}/zookeeper-server-cleanup
 %doc %{doc_zookeeper}
 %{man_dir}/man1/zookeeper.1.*
+
+%files server
+%attr(0755,root,root) %{initd_dir}/%{svc_zookeeper}
+
+%files rest
+%attr(0755,root,root) %{initd_dir}/%{svc_zookeeper_rest}
+
+%files native
+%defattr(-,root,root)
+%{lib_zookeeper}-native
+%{bin_zookeeper}/cli_*
+%{bin_zookeeper}/load_gen*
+%{_includedir}/zookeeper
+%{_libdir}/*
+

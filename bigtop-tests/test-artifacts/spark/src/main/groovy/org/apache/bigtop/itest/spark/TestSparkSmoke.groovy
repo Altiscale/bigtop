@@ -40,20 +40,20 @@ public class TestSparkSmoke implements Serializable {
   private static String pwd = ""
   private static Configuration conf
   static Shell sh = new Shell("/bin/bash -s")
-  def result = ["0.2: 3", "0.1: 3", "0.0: 3", "9.0: 3", "9.2: 3", "9.1: 3"]
+  def result = ["9.1: 3", "9.2: 3", "0.2: 3", "9.0: 3", "0.0: 3", "0.1: 3"]
 
   @BeforeClass
   static void setUp() {
-   sh.exec("pwd")
-   pwd = sh.out
-   int lastIndex = pwd.length() - 1
-   pwd = pwd.substring(1, lastIndex)
+    sh.exec("pwd")
+    pwd = sh.out
+    int lastIndex = pwd.length() - 1
+    pwd = pwd.substring(1, lastIndex)
   }
 
   @Test
   void ShellTest() {
     String kmeans = "file://" + pwd + "/kmeans_data.txt"
-    sh.exec("cd ${SPARK_HOME} && ./spark-class org.apache.spark.examples.JavaWordCount local " + kmeans)
+    sh.exec("cd ${SPARK_HOME} && ./bin/spark-submit --class org.apache.spark.examples.JavaWordCount --master local lib/spark-examples.jar " + kmeans)
     logError(sh)
     assertEquals(result, sh.out)
   }
@@ -68,7 +68,7 @@ public class TestSparkSmoke implements Serializable {
     fs.close()
 
     String dfsname = fs_default_name + pathname
-    sh.exec("cd ${SPARK_HOME} && ./spark-class org.apache.spark.examples.JavaWordCount ${SPARK_MASTER} " + dfsname)
+    sh.exec("cd ${SPARK_HOME} && ./bin/spark-submit --class org.apache.spark.examples.JavaWordCount --master ${SPARK_MASTER} lib/spark-examples.jar " + dfsname)
     logError(sh)
     assertEquals(result, sh.out)
   }
@@ -79,7 +79,7 @@ public class TestSparkSmoke implements Serializable {
     String[] jars = [System.getProperty("sparkJar"), org.apache.bigtop.itest.JarContent.getJarURL("groovy.lang.GroovyObject")];
 
     JavaSparkContext sc = new JavaSparkContext("local", "Simple Job",
-        SPARK_HOME, jars);
+      SPARK_HOME, jars);
 
     JavaRDD<String> logData = sc.textFile(logFile).cache();
 

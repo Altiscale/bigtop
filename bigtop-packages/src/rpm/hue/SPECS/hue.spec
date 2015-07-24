@@ -26,14 +26,22 @@ Source1: %{name}.init
 Source2: %{name}.init.suse
 Source3: do-component-build
 Source4: install_hue.sh
+Source5: bigtop.bom
+#BIGTOP_PATCH_FILES
 URL: http://github.com/cloudera/hue
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-server = %{version}-%{release}
+Requires: %{name}-impala = %{version}-%{release}
 Requires: %{name}-beeswax = %{version}-%{release}
 Requires: %{name}-pig = %{version}-%{release}
 Requires: %{name}-hbase = %{version}-%{release}
 Requires: %{name}-sqoop = %{version}-%{release}
 Requires: %{name}-search = %{version}-%{release}
+Requires: %{name}-rdbms = %{version}-%{release}
+Requires: %{name}-security = %{version}-%{release}
+Requires: %{name}-spark = %{version}-%{release}
+Requires: %{name}-zookeeper = %{version}-%{release}
+Requires: %{name}-useradmin = %{version}-%{release}
 
 
 ################ RPM CUSTOMIZATION ##############################
@@ -78,6 +86,8 @@ AutoReqProv: no
 
 %define apps_dir %{hue_dir}/apps
 %define about_app_dir %{hue_dir}/apps/about
+%define impala_app_dir %{hue_dir}/apps/impala
+%define security_app_dir %{hue_dir}/apps/security
 %define beeswax_app_dir %{hue_dir}/apps/beeswax
 %define oozie_app_dir %{hue_dir}/apps/oozie
 %define pig_app_dir %{hue_dir}/apps/pig
@@ -87,12 +97,15 @@ AutoReqProv: no
 %define jobbrowser_app_dir %{hue_dir}/apps/jobbrowser
 %define jobsub_app_dir %{hue_dir}/apps/jobsub
 %define proxy_app_dir %{hue_dir}/apps/proxy
-%define shell_app_dir %{hue_dir}/apps/shell
 %define useradmin_app_dir %{hue_dir}/apps/useradmin
 %define etc_hue /etc/hue/conf 
 %define hbase_app_dir %{hue_dir}/apps/hbase
 %define sqoop_app_dir %{hue_dir}/apps/sqoop
 %define search_app_dir %{hue_dir}/apps/search
+%define rdbms_app_dir %{hue_dir}/apps/rdbms
+%define useradmin_app_dir %{hue_dir}/apps/useradmin
+%define spark_app_dir %{hue_dir}/apps/spark
+%define zookeeper_app_dir %{hue_dir}/apps/zookeeper
 
 
 # Path to the HADOOP_HOME to build against - these
@@ -140,6 +153,8 @@ It supports a file browser, job tracker interface, cluster health monitor, and m
 %prep
 %setup -n %{name}-release-%{hue_base_version}
 
+#BIGTOP_PATCH_COMMANDS
+
 ########################################
 # Build
 ########################################
@@ -167,12 +182,13 @@ cp $orig_init_file $RPM_BUILD_ROOT/%{initd_dir}/hue
 %package -n %{name}-common
 Summary: A browser-based desktop interface for Hadoop
 BuildRequires: python-devel, python-setuptools, gcc, gcc-c++
-BuildRequires: libxml2-devel, libxslt-devel, zlib-devel
+BuildRequires: libxml2-devel, libxslt-devel, zlib-devel, libyaml-devel
 BuildRequires: cyrus-sasl-devel
-BuildRequires: openssl
+BuildRequires: openssl-devel
 BuildRequires: krb5-devel
+BuildRequires: asciidoc
 Group: Applications/Engineering
-Requires: cyrus-sasl-gssapi, libxml2, libxslt, zlib, python, sqlite
+Requires: cyrus-sasl-gssapi, libxml2, libxslt, zlib, python, sqlite, libyaml
 # The only reason we need the following is because we also have AutoProv: no
 Provides: config(%{name}-common) = %{version}
 
@@ -183,7 +199,7 @@ Requires: insserv, python-xml
 %else
 BuildRequires: /sbin/runuser, sqlite-devel, openldap-devel, mysql-devel, openssl-devel
 # Required for init scripts
-Requires: redhat-lsb
+Requires: /lib/lsb/init-functions
 %endif
 
 # Disable automatic Provides generation - otherwise we will claim to provide all of the
@@ -256,7 +272,8 @@ fi
 %{hue_dir}/VERSION
 %{hue_dir}/build/env/bin/*
 %{hue_dir}/build/env/include/
-%{hue_dir}/build/env/lib*/
+%{hue_dir}/build/env/lib/
+%{hue_dir}/build/env/lib64
 %{hue_dir}/build/env/stamp
 %{hue_dir}/app.reg
 %{hue_dir}/apps/Makefile
@@ -269,19 +286,23 @@ fi
 %{jobsub_app_dir}
 %{proxy_app_dir}
 %{useradmin_app_dir}
-%{shell_app_dir}
 %{metastore_app_dir}
 %{oozie_app_dir}
-%attr(4750,root,hue) %{shell_app_dir}/src/shell/build/setuid
 %attr(0755,%{username},%{username}) /var/log/hue
 %attr(0755,%{username},%{username}) /var/lib/hue
 
-# beeswax and pig are packaged as a plugin app
+# these apps are packaged as a plugin app
 %exclude %{beeswax_app_dir}
+%exclude %{impala_app_dir}
+%exclude %{security_app_dir}
 %exclude %{pig_app_dir}
 %exclude %{hbase_app_dir}
 %exclude %{sqoop_app_dir}
 %exclude %{search_app_dir}
+%exclude %{rdbms_app_dir}
+%exclude %{spark_app_dir}
+%exclude %{zookeeper_app_dir}
+%exclude %{useradmin_app_dir}
 
 
 ############################################################
@@ -307,6 +328,17 @@ This package provides the service scripts for Hue server.
 %post -n %{name}-server 
 /sbin/chkconfig --add hue
 
+# Documentation
+%package -n %{name}-doc
+Summary: Documentation for Hue
+Group: Documentation
+
+%description -n %{name}-doc
+This package provides the installation manual, user guide, SDK documentation, and release notes.
+
+%files -n %{name}-doc
+%attr(0755,root,root) /usr/share/doc/hue
+
 ########################################
 # Pre-uninstall
 ########################################
@@ -320,6 +352,25 @@ fi
 if [ $1 -ge 1 ]; then 
         service %{name} condrestart >/dev/null 2>&1 
 fi
+#### HUE-IMPALA PLUGIN ######
+%package -n %{name}-impala
+Summary: A UI for Impala on Hue
+Group: Applications/Engineering
+Requires: %{name}-common = %{version}-%{release}, make
+
+%description -n %{name}-impala
+Beeswax is a web interface for Impala.
+
+It allows users to construct and run queries on Imapala, manage tables,
+and import and export data.
+
+%app_post_macro impala
+%app_preun_macro impala
+
+%files -n %{name}-impala
+%defattr(-, %{username}, %{username})
+%{impala_app_dir}
+
 
 #### HUE-BEESWAX PLUGIN ######
 %package -n %{name}-beeswax
@@ -409,3 +460,93 @@ It allows users to interact with Solr
 %files -n %{name}-search
 %defattr(-, %{username}, %{username})
 %{search_app_dir}
+
+#### HUE-RDBMS PLUGIN ######
+%package -n %{name}-rdbms
+Summary: A UI for RDBMS on Hue
+Group: Applications/Engineering
+Requires: %{name}-common = %{version}-%{release}
+
+%description -n %{name}-rdbms
+A web interface for RDBMS.
+
+It allows users to interact with RDBMS
+
+%app_post_macro rdbms
+%app_preun_macro rdbms
+
+%files -n %{name}-rdbms
+%defattr(-, %{username}, %{username})
+%{rdbms_app_dir}
+
+#### HUE-SECURITY PLUGIN ######
+%package -n %{name}-security
+Summary: A UI for Security and Roles on Hue
+Group: Applications/Engineering
+Requires: %{name}-common = %{version}-%{release}
+
+%description -n %{name}-security
+A web interface for Roles and Security.
+
+It allows users to interact with Roles and Security
+
+%app_post_macro security
+%app_preun_macro security
+
+%files -n %{name}-security
+%defattr(-, %{username}, %{username})
+%{security_app_dir}
+
+#### HUE-USERADMIN PLUGIN ######
+%package -n %{name}-useradmin
+Summary: A UI for Hue user administration
+Group: Applications/Engineering
+Requires: %{name}-common = %{version}-%{release}
+
+%description -n %{name}-useradmin
+A web interface for Hue user administration
+
+It allows for Hue user administration
+
+%app_post_macro useradmin
+%app_preun_macro useradmin
+
+%files -n %{name}-useradmin
+%defattr(-, %{username}, %{username})
+%{useradmin_app_dir}
+
+#### HUE-SPARK PLUGIN ######
+%package -n %{name}-spark
+Summary: A UI for Spark on Hue
+Group: Applications/Engineering
+Requires: %{name}-common = %{version}-%{release}
+
+%description -n %{name}-spark
+A web interface for Spark.
+
+It allows users to interact with Spark
+
+%app_post_macro spark
+%app_preun_macro spark
+
+%files -n %{name}-spark
+%defattr(-, %{username}, %{username})
+%{spark_app_dir}
+
+#### HUE-ZOOKEEPER PLUGIN ######
+%package -n %{name}-zookeeper
+Summary: A UI for Zookeeper on Hue
+Group: Applications/Engineering
+Requires: %{name}-common = %{version}-%{release}
+
+%description -n %{name}-zookeeper
+A web interface for Zookeeper.
+
+It allows users to interact with Zookeeper
+
+%app_post_macro zookeeper
+%app_preun_macro zookeeper
+
+%files -n %{name}-zookeeper
+%defattr(-, %{username}, %{username})
+%{zookeeper_app_dir}

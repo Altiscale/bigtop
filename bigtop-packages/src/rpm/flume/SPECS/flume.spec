@@ -61,7 +61,7 @@ URL: http://incubator.apache.org/projects/flume.html
 Group: Development/Libraries
 Buildroot: %{_topdir}/INSTALL/%{name}-%{version}
 BuildArch: noarch
-License: APL2
+License: ASL 2.0
 Source0: %{flume_folder}.tar.gz
 Source1: do-component-build
 Source2: install_%{name}.sh
@@ -69,7 +69,7 @@ Source3: %{name}-agent.init
 Source4: flume-agent.default
 Requires: /usr/sbin/useradd
 Requires: coreutils
-Requires: hadoop-hdfs
+Requires: hadoop, hadoop-hdfs 
 Requires: bigtop-utils >= 0.7
 
 %if  0%{?mgaversion}
@@ -105,7 +105,7 @@ Requires: initscripts
 # So I will suppose anything that is not Mageia or a SUSE will be a RHEL/CentOS/Fedora
 %if %{!?suse_version:1}0 && %{!?mgaversion:1}0
 # Required for init scripts
-Requires: redhat-lsb
+Requires: /lib/lsb/init-functions
 %endif
 
 %description agent
@@ -136,11 +136,6 @@ chmod 755 $init_file
 
 %__install -d -m 0755 $RPM_BUILD_ROOT/etc/default
 %__cp %{SOURCE4} $RPM_BUILD_ROOT/etc/default/%{name}-agent
-
-# Get rid of hadoop jar, and instead link to installed hadoop
-rm $RPM_BUILD_ROOT/usr/lib/flume/lib/hadoop-* || true
-ln -s /usr/lib/hadoop/hadoop-common.jar $RPM_BUILD_ROOT/usr/lib/flume/lib/hadoop-common.jar
-ln -s /usr/lib/hadoop/hadoop-auth.jar $RPM_BUILD_ROOT/usr/lib/flume/lib/hadoop-auth.jar
 
 %pre
 getent group flume >/dev/null || groupadd -r flume
@@ -181,6 +176,7 @@ fi
 %dir %{lib_flume}
 %dir %{lib_flume}/bin
 %dir %{lib_flume}/lib
+%dir %{lib_flume}/plugins.d
 %dir %{lib_flume}/tools
 
 %config(noreplace) %{etc_flume}.empty/*

@@ -15,11 +15,11 @@
 
 <% def shell_config(shell_var, *puppet_var)
      puppet_var = puppet_var[0] || shell_var.downcase
-     if has_variable? puppet_var
-        return "export #{shell_var}=#{scope.lookupvar(puppet_var)}"
-     else
-        return "#export #{shell_var}="
+     puppet_vars = scope.to_hash
+     if puppet_vars[puppet_var]
+        return "export #{shell_var}=#{puppet_vars[puppet_var]}"
      end
+     return "#export #{shell_var}="
    end %>
 # WARNING: Heavy puppet machinery is involved managing this file,
 #          your edits stand no chance
@@ -79,6 +79,14 @@
 
 # The scheduling priority for daemon processes.  See 'man nice'.
 <%= shell_config("HADOOP_NICENESS") %>
+
+# tez environment, needed to enable tez
+<% if (@all or @components.include? "tez") -%>
+<%= shell_config("TEZ_CONF_DIR") %>
+<%= shell_config("TEZ_JARS") %>
+# Add tez into HADOOP_CLASSPATH
+export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:${TEZ_CONF_DIR}:${TEZ_JARS}/*:${TEZ_JARS}/lib/*
+<% end -%>
 
 ### WARNING: the following is NOT really optional. It is a shame that stock Hadoop
 ### hadoop_env.sh doesn't make it clear -- you can NOT turn  com.sun.management.jmxremote off

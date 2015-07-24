@@ -16,11 +16,16 @@
 class bigtop_toolchain::installer {
   include bigtop_toolchain::jdk
   include bigtop_toolchain::maven
-  include bigtop_toolchain::forrest
   include bigtop_toolchain::ant
+  include bigtop_toolchain::gradle
   include bigtop_toolchain::protobuf
   include bigtop_toolchain::packages
   include bigtop_toolchain::env
   include bigtop_toolchain::user
   include bigtop_toolchain::scala
+
+  stage { 'last':
+    require => Stage['main'],
+  }
+  class { 'bigtop_toolchain::cleanup': stage => 'last' }
 }

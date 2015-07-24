@@ -23,7 +23,7 @@
 %define webapps_hbase %{hbase_home}/hbase-webapps
 %define man_dir %{_mandir}
 %define hbase_username hbase
-%define hbase_services master regionserver thrift rest
+%define hbase_services master regionserver thrift thrift2 rest
 %define hadoop_home /usr/lib/hadoop
 %define zookeeper_home /usr/lib/zookeeper
 
@@ -82,7 +82,7 @@ Summary: HBase is the Hadoop database. Use it when you need random, realtime rea
 URL: http://hbase.apache.org/
 Group: Development/Libraries
 Buildroot: %{_topdir}/INSTALL/%{name}-%{version}
-License: APL2
+License: ASL 2.0
 Source0: %{name}-%{hbase_base_version}.tar.gz
 Source1: do-component-build
 Source2: install_hbase.sh
@@ -134,7 +134,7 @@ Requires: initscripts
 # So I will suppose anything that is not Mageia or a SUSE will be a RHEL/CentOS/Fedora
 %if %{!?suse_version:1}0 && %{!?mgaversion:1}0
 # Required for init scripts
-Requires: redhat-lsb
+Requires: /lib/lsb/init-functions
 %endif
 
 %description master
@@ -160,7 +160,7 @@ Requires: initscripts
 # So I will suppose anything that is not Mageia or a SUSE will be a RHEL/CentOS/Fedora
 %if %{!?suse_version:1}0 && %{!?mgaversion:1}0
 # Required for init scripts
-Requires: redhat-lsb
+Requires: /lib/lsb/init-functions
 %endif
 
 
@@ -187,13 +187,41 @@ Requires: initscripts
 # So I will suppose anything that is not Mageia or a SUSE will be a RHEL/CentOS/Fedora
 %if %{!?suse_version:1}0 && %{!?mgaversion:1}0
 # Required for init scripts
-Requires: redhat-lsb
+Requires: /lib/lsb/init-functions
 %endif
 
 
 %description thrift
 ThriftServer - this class starts up a Thrift server which implements the Hbase API specified in the Hbase.thrift IDL file.
 "Thrift is a software framework for scalable cross-language services development. It combines a powerful software stack with a code generation engine to build services that work efficiently and seamlessly between C++, Java, Python, PHP, and Ruby. Thrift was developed at Facebook, and we are now releasing it as open source." For additional information, see http://developers.facebook.com/thrift/. Facebook has announced their intent to migrate Thrift into Apache Incubator.
+
+%package thrift2
+Summary: The Hadoop HBase Thrift2 Interface
+Group: System/Daemons
+Requires: %{name} = %{version}-%{release}
+Requires(pre): %{name} = %{version}-%{release}
+
+%if  %{?suse_version:1}0
+# Required for init scripts
+Requires: insserv
+%endif
+
+%if  0%{?mgaversion}
+# Required for init scripts
+Requires: initscripts
+%endif
+
+# CentOS 5 does not have any dist macro
+# So I will suppose anything that is not Mageia or a SUSE will be a RHEL/CentOS/Fedora
+%if %{!?suse_version:1}0 && %{!?mgaversion:1}0
+# Required for init scripts
+Requires: /lib/lsb/init-functions
+%endif
+
+
+%description thrift2
+Thrift2 Server to supersede original Thrift Server.
+Still under development. https://issues.apache.org/jira/browse/HBASE-8818
 
 %package doc
 Summary: Hbase Documentation
@@ -224,7 +252,7 @@ Requires: initscripts
 # So I will suppose anything that is not Mageia or a SUSE will be a RHEL/CentOS/Fedora
 %if %{!?suse_version:1}0 && %{!?mgaversion:1}0
 # Required for init scripts
-Requires: redhat-lsb
+Requires: /lib/lsb/init-functions
 %endif
 
 
@@ -239,7 +267,7 @@ env HBASE_VERSION=%{version} bash %{SOURCE1}
 
 %install
 %__rm -rf $RPM_BUILD_ROOT
-sh %{SOURCE2} \
+bash %{SOURCE2} \
 	--build-dir=build \
         --doc-dir=%{doc_hbase} \
         --conf-dir=%{etc_hbase_conf_dist} \
@@ -258,6 +286,8 @@ ln -s %{_localstatedir}/log/%{name} %{buildroot}/%{logs_hbase}
 
 %__install -d  -m 0755  %{buildroot}/%{_localstatedir}/run/%{name}
 ln -s %{_localstatedir}/run/%{name} %{buildroot}/%{pids_hbase}
+
+%__install -d  -m 0755  %{buildroot}/%{_localstatedir}/lib/%{name}
 
 for service in %{hbase_services}
 do
@@ -286,7 +316,7 @@ ln -f -s %{zookeeper_home}/zookeeper.jar $RPM_BUILD_ROOT/%{lib_hbase}
 
 %pre
 getent group hbase 2>/dev/null >/dev/null || /usr/sbin/groupadd -r hbase
-getent passwd hbase 2>&1 > /dev/null || /usr/sbin/useradd -c "HBase" -s /sbin/nologin -g hbase -r -d /var/run/hbase hbase 2> /dev/null || :
+getent passwd hbase 2>&1 > /dev/null || /usr/sbin/useradd -c "HBase" -s /sbin/nologin -g hbase -r -d /var/lib/hbase hbase 2> /dev/null || :
 
 %post
 %{alternatives_cmd} --install %{etc_hbase_conf} %{name}-conf %{etc_hbase_conf_dist} 30
@@ -306,6 +336,7 @@ fi
 %{pids_hbase}
 %dir %{_localstatedir}/log/hbase
 %dir %{_localstatedir}/run/hbase
+%dir %{_localstatedir}/lib/hbase
 
 %defattr(-,root,root)
 %config(noreplace) %{_sysconfdir}/default/hbase
@@ -338,5 +369,6 @@ if [ $1 -ge 1 ]; then \
 fi
 %service_macro master
 %service_macro thrift
+%service_macro thrift2
 %service_macro regionserver
 %service_macro rest

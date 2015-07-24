@@ -34,11 +34,11 @@ URL: http://crunch.apache.org/
 Group: Development/Libraries
 BuildArch: noarch
 Buildroot: %(mktemp -ud %{_tmppath}/%{crunch_name}-%{version}-%{release}-XXXXXX)
-License: ASL 2.0 
+License: ASL 2.0
 Source0: %{crunch_folder}.tar.gz
 Source1: do-component-build 
 Source2: install_%{crunch_name}.sh
-
+Requires: hadoop-client, bigtop-utils >= 0.7
 
 %description 
 Apache Crunch is a Java library for writing, testing, and running
@@ -60,7 +60,7 @@ bash $RPM_SOURCE_DIR/do-component-build
 
 %install
 %__rm -rf $RPM_BUILD_ROOT
-sh $RPM_SOURCE_DIR/install_crunch.sh \
+bash $RPM_SOURCE_DIR/install_crunch.sh \
           --build-dir=${PWD}/build   \
           --doc-dir=%{doc_crunch}    \
           --prefix=$RPM_BUILD_ROOT

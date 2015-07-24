@@ -23,7 +23,7 @@
 %define config_spark %{etc_spark}/conf
 %define bin /usr/bin
 %define man_dir /usr/share/man
-%define spark_services master worker
+%define spark_services master worker history-server thriftserver
 
 %if  %{?suse_version:1}0
 %define doc_spark %{_docdir}/spark
@@ -36,21 +36,25 @@
 # disable repacking jars
 %define __os_install_post %{nil}
 
-Name: spark
+Name: spark-core
 Version: %{spark_version}
 Release: %{spark_release}
 Summary: Lightning-Fast Cluster Computing
-URL: http://spark.incubator.apache.org/
+URL: http://spark.apache.org/
 Group: Development/Libraries
 BuildArch: noarch
 Buildroot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-License: ASL 2.0 
-Source0: %{name}-%{spark_base_version}.tar.gz
+License: ASL 2.0
+Source0: %{spark_name}-%{spark_base_version}.tar.gz
 Source1: do-component-build 
-Source2: install_%{name}.sh
+Source2: install_%{spark_name}.sh
 Source3: spark-master.svc
 Source4: spark-worker.svc
-Requires: bigtop-utils
+Source6: init.d.tmpl
+Source7: spark-history-server.svc
+Source8: spark-thriftserver.svc
+Source9: bigtop.bom
+Requires: bigtop-utils >= 0.7, hadoop-client
 Requires(preun): /sbin/service
 
 %global initd_dir %{_sysconfdir}/init.d
@@ -62,7 +66,7 @@ Requires: insserv
 
 %else
 # Required for init scripts
-Requires: redhat-lsb
+Requires: /lib/lsb/init-functions
 
 %global initd_dir %{_sysconfdir}/rc.d/init.d
 
@@ -74,32 +78,68 @@ low-latency iterative jobs and interactive use from an interpreter. It is
 written in Scala, a high-level language for the JVM, and exposes a clean
 language-integrated syntax that makes it easy to write parallel jobs.
 Spark runs on top of the Apache Mesos cluster manager.
-    
+
+%package -n spark-master
+Summary: Server for Spark master
+Group: Development/Libraries
+Requires: spark-core = %{version}-%{release}
+
+%description -n spark-master
+Server for Spark master
+
+%package -n spark-worker
+Summary: Server for Spark worker
+Group: Development/Libraries
+Requires: spark-core = %{version}-%{release}
+
+%description -n spark-worker
+Server for Spark worker
+
+%package -n spark-python
+Summary: Python client for Spark
+Group: Development/Libraries
+Requires: spark-core = %{version}-%{release}, python
+
+%description -n spark-python
+Includes PySpark, an interactive Python shell for Spark, and related libraries
+
+%package -n spark-history-server
+Summary: History server for Apache Spark
+Group: Development/Libraries
+Requires: spark-core = %{version}-%{release}
+
+%description -n spark-history-server
+History server for Apache Spark
+
+%package -n spark-thriftserver
+Summary: Thrift server for Spark SQL
+Group: Development/Libraries
+Requires: spark-core = %{version}-%{release}
+
+%description -n spark-thriftserver
+Thrift server for Spark SQL
+
 %prep
-%setup -n %{name}-%{spark_base_version}
+%setup -n %{spark_name}-%{spark_base_version}
 
 %build
 bash $RPM_SOURCE_DIR/do-component-build
 
 %install
 %__rm -rf $RPM_BUILD_ROOT
-%__install -d -m 0755 $RPM_BUILD_ROOT/%{bin_spark}/
-%__install -d -m 0755 $RPM_BUILD_ROOT/%{_localstatedir}/lib/%{name}/
-%__install -d -m 0755 $RPM_BUILD_ROOT/%{_localstatedir}/log/%{name}/
-%__install -d -m 0755 $RPM_BUILD_ROOT/%{_localstatedir}/run/%{name}/
-%__install -d -m 0755 $RPM_BUILD_ROOT/%{_localstatedir}/run/%{name}/work/
 %__install -d -m 0755 $RPM_BUILD_ROOT/%{initd_dir}/
 
-sh $RPM_SOURCE_DIR/install_spark.sh \
+bash $RPM_SOURCE_DIR/install_spark.sh \
           --build-dir=`pwd`         \
           --source-dir=$RPM_SOURCE_DIR \
           --prefix=$RPM_BUILD_ROOT  \
-          --doc-dir=%{doc_spark} 
+          --doc-dir=%{doc_spark} \
+          --pyspark-python=python
 
 for service in %{spark_services}
 do
     # Install init script
-    init_file=$RPM_BUILD_ROOT/%{initd_dir}/%{name}-${service}
+    init_file=$RPM_BUILD_ROOT/%{initd_dir}/%{spark_name}-${service}
     bash $RPM_SOURCE_DIR/init.d.tmpl $RPM_SOURCE_DIR/spark-${service}.svc rpm $init_file
 done
 
@@ -116,26 +156,61 @@ if [ "$1" = 0 ]; then
 fi
 
 for service in %{spark_services}; do
-  /sbin/service %{name}-${service} status > /dev/null 2>&1
+  /sbin/service %{spark_name}-${service} status > /dev/null 2>&1
   if [ $? -eq 0 ]; then
-    /sbin/service %{name}-${service} stop > /dev/null 2>&1
+    /sbin/service %{spark_name}-${service} stop > /dev/null 2>&1
   fi
 done
 
 #######################
 #### FILES SECTION ####
 #######################
-%files 
+%files
 %defattr(-,root,root,755)
 %config(noreplace) %{config_spark}.dist
 %doc %{doc_spark}
-%{lib_spark}
+%{lib_spark}/conf
+%{lib_spark}/LICENSE
+%{lib_spark}/RELEASE
+%{lib_spark}/NOTICE
+%{lib_spark}/bin
+%{lib_spark}/lib
+%{lib_spark}/sbin
+%{lib_spark}/data
+%{lib_spark}/examples
+%{lib_spark}/work
+%exclude %{bin_spark}/pyspark
+%exclude %{lib_spark}/python
 %{etc_spark}
 %attr(0755,spark,spark) %{var_lib_spark}
 %attr(0755,spark,spark) %{var_run_spark}
 %attr(0755,spark,spark) %{var_log_spark}
-%attr(0755,root,root) %{initd_dir}/spark-master
-%attr(0755,root,root) %{initd_dir}/spark-worker
-%attr(0755,root,root) %{bin_spark}
 %{bin}/spark-shell
 %{bin}/spark-executor
+%{bin}/spark-submit
+
+%files -n spark-python
+%defattr(-,root,root,755)
+%attr(0755,root,root) %{bin}/pyspark
+%attr(0755,root,root) %{lib_spark}/bin/pyspark
+%{lib_spark}/python
+
+%define service_macro() \
+%files -n %1 \
+%attr(0755,root,root)/%{initd_dir}/%1 \
+%post -n %1 \
+chkconfig --add %1 \
+\
+%preun -n %1 \
+if [ $1 = 0 ] ; then \
+        service %1 stop > /dev/null 2>&1 \
+        chkconfig --del %1 \
+fi \
+%postun -n %1 \
+if [ $1 -ge 1 ]; then \
+        service %1 condrestart >/dev/null 2>&1 \
+fi
+%service_macro spark-master
+%service_macro spark-worker
+%service_macro spark-history-server
+%service_macro spark-thriftserver

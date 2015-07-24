@@ -1,56 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   Licensed to the Apache Software Foundation (ASF) under one or more
-   contributor license agreements.  See the NOTICE file distributed with
-   this work for additional information regarding copyright ownership.
-   The ASF licenses this file to You under the Apache License, Version 2.0
-   (the "License"); you may not use this file except in compliance with
-   the License.  You may obtain a copy of the License at
+	Licensed to the Apache Software Foundation (ASF) under one or more
+	contributor license agreements. See the NOTICE file distributed with
+	this work for additional information regarding copyright ownership.
+	The ASF licenses this file to You under the Apache License, Version 2.0
+	(the "License"); you may not use this file except in compliance with
+	the License. You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  
+
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
     <version>8</version>
-  </parent> 
+  </parent>
 
   <groupId>org.apache.bigtop</groupId>
   <artifactId>bigtop</artifactId>
-  <version>0.7.0-altiscale-SNAPSHOT</version>
+
+  <version>1.0.0</version>
   <packaging>pom</packaging>
-  
+
   <name>Bigtop</name>
-  <description>The development of packaging and tests of the Apache Hadoop ecosystem</description>
+  <description>The development of packaging and tests of the Apache Hadoop
+    ecosystem
+  </description>
   <url>http://bigtop.apache.org/</url>
   <inceptionYear>2011</inceptionYear>
 
   <properties>
-    <hadoop.version>2.0.6-alpha</hadoop.version>
-    <hbase.version>0.94.11</hbase.version>
-    <pig.version>0.11.1</pig.version>
-    <pig-smoke.version>0.11.1</pig-smoke.version>
-    <sqoop.version>1.99.3</sqoop.version>
+
+    <hadoop.version>2.6.0</hadoop.version>
+    <!--An awful hack for BIGTOP-1429-->
+    <hbase.version>0.98.5-hadoop2</hbase.version>
+    <pig.version>0.12.1</pig.version>
+    <pig-smoke.version>0.12.1</pig-smoke.version>
+    <sqoop.version>1.4.5</sqoop.version>
+    <sqoop2.version>1.99.4</sqoop2.version>
     <zookeeper.version>3.4.5</zookeeper.version>
     <giraph.version>1.0.0</giraph.version>
-    <solr.version>4.4.0</solr.version>
-    <spark.version>0.8.0-incubating</spark.version>
-    <spark-smoke.version>0.7.0-altiscale-SNAPSHOT</spark-smoke.version>
+    <solr.version>4.6.0</solr.version>
+    <spark.version>1.3.1</spark.version>
+    <kafka.version>0.8.1.1</kafka.version>
+    <phoenix.version>4.3.1</phoenix.version>
+    <spark-smoke.version>${project.version}</spark-smoke.version>
+
 
     <itest-common.version>0.7.0-altiscale-SNAPSHOT</itest-common.version>
 
-    <groovy.version>1.8.6</groovy.version>
-    <groovy-eclipse-compiler.version>2.7.0-01</groovy-eclipse-compiler.version>
+    <groovy.version>2.1.8</groovy.version>
+    <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
+    <groovy-eclipse-compiler.version>2.8.0-01</groovy-eclipse-compiler.version>
     <gmaven.version>1.0</gmaven.version>
     <ant.version>1.8.2</ant.version>
     <commons.logging.version>1.1</commons.logging.version>
@@ -59,6 +70,11 @@
     <log4j.version>1.2.14</log4j.version>
     <antlr.version>3.4</antlr.version>
     <cxf.version>2.5.0</cxf.version>
+
+    <maven.build.timestamp.format>
+      yyyy-MM-dd'T'HH:mm
+    </maven.build.timestamp.format>
+    <buildDate>${maven.build.timestamp}</buildDate>
   </properties>
   
   <distributionManagement>
@@ -185,12 +201,23 @@
       </dependency>
       <dependency>
         <groupId>org.apache.hbase</groupId>
-        <artifactId>hbase</artifactId>
+        <artifactId>hbase-common</artifactId>
         <version>${hbase.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.hbase</groupId>
-        <artifactId>hbase</artifactId>
+        <artifactId>hbase-common</artifactId>
+        <version>${hbase.version}</version>
+        <type>test-jar</type>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-server</artifactId>
+        <version>${hbase.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hbase</groupId>
+        <artifactId>hbase-server</artifactId>
         <version>${hbase.version}</version>
         <type>test-jar</type>
       </dependency>
@@ -236,8 +263,28 @@
       </dependency>
       <dependency>
         <groupId>org.apache.spark</groupId>
-        <artifactId>spark-core_2.9.3</artifactId>
+        <artifactId>spark-core_2.10</artifactId>
         <version>${spark.version}</version>
+      </dependency>
+       <dependency>
+        <groupId>org.apache.kafka</groupId>
+        <artifactId>kafka</artifactId>
+        <version>${kafka.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.phoenix</groupId>
+        <artifactId>phoenix-core</artifactId>
+        <version>${phoenix.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.phoenix</groupId>
+        <artifactId>phoenix-flume</artifactId>
+        <version>${phoenix.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.phoenix</groupId>
+        <artifactId>phoenix-pig</artifactId>
+        <version>${phoenix.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -246,8 +293,8 @@
     <extensions>
       <extension>
         <groupId>org.apache.maven.wagon</groupId>
-         <artifactId>wagon-ssh-external</artifactId>
-         <version>1.0-beta-6</version>
+        <artifactId>wagon-ssh-external</artifactId>
+        <version>2.6</version>
       </extension>
     </extensions>
     <pluginManagement>
@@ -274,13 +321,15 @@
           <configuration>
             <excludes>
               <exclude>.git/**</exclude>
-              <exclude>**/.gitignore</exclude> 
+              <exclude>.idea/**</exclude>
+              <exclude>**/.gitignore</exclude>
               <!-- Test data with rigid structure and/or binary -->
               <exclude>bigtop-tests/test-artifacts/**/resources/**</exclude>
               <!-- Debian package files that have a rigid structure (* matches package name) -->
               <exclude>bigtop-packages/src/deb/*/*.dirs</exclude>
               <exclude>bigtop-packages/src/deb/*/dirs</exclude>
               <exclude>bigtop-packages/src/deb/*/*.install</exclude>
+              <exclude>bigtop-packages/src/deb/*/*.include</exclude>
               <exclude>bigtop-packages/src/deb/*/*.manpages</exclude>
               <exclude>bigtop-packages/src/deb/*/*.docs</exclude>
               <exclude>bigtop-packages/src/deb/*/docs</exclude>
@@ -292,9 +341,16 @@
               <!-- Miscelaneous individual files -->
               <exclude>src/site/resources/bigtop.rdf</exclude>
               <exclude>src/site/resources/images/bigtop-logo.ai</exclude>
+                <!--Excluding a file with FreeBSD Documentation License-->
+              <exclude>src/site/resources/css/freebsd_docbook.css</exclude>
+              <exclude>bigtop-packages/src/common/*/*.json</exclude>
               <exclude>test/MANIFEST.txt</exclude>
-              <exclude>bigtop-deploy/puppet/modules/hadoop/templates/taskcontroller.cfg</exclude>
-              <exclude>bigtop-deploy/puppet/modules/hadoop/templates/container-executor.cfg</exclude>
+              <exclude>
+                bigtop-deploy/puppet/modules/hadoop/templates/taskcontroller.cfg
+              </exclude>
+              <exclude>
+                bigtop-deploy/puppet/modules/hadoop/templates/container-executor.cfg
+              </exclude>
               <exclude>bigtop-deploy/puppet/README.md</exclude>
               <exclude>bigtop-deploy/puppet/config/site.csv.example</exclude>
             </excludes>
@@ -303,7 +359,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-pdf-plugin</artifactId>
-          <version>1.1</version>
+          <version>1.2</version>
           <dependencies>
             <dependency>
               <groupId>org.apache.maven.doxia</groupId>
@@ -315,7 +371,10 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
-          <version>2.1.1</version>
+          <version>3.3</version>
+          <configuration>
+            <skipDeploy>true</skipDeploy>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -331,13 +390,113 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-gpg-plugin</artifactId>
           <version>1.4</version>
-          <configuration>
-            <skip>true</skip>
-           </configuration>
-          </plugin>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-scm-publish-plugin</artifactId>
+          <version>1.0</version>
+        </plugin>
+
       </plugins>
     </pluginManagement>
+    <plugins>
+      <!--Build the documentation. We build it twice. Once as a single page and then again as multipage. -->
+      <plugin>
+        <groupId>com.agilejava.docbkx</groupId>
+        <artifactId>docbkx-maven-plugin</artifactId>
+        <version>2.0.14</version>
+        <inherited>false</inherited>
+        <dependencies>
+          <dependency>
+            <groupId>org.docbook</groupId>
+            <artifactId>docbook-xml</artifactId>
+            <version>4.4</version>
+            <scope>runtime</scope>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <sourceDirectory>${basedir}/src/site/docbookx/</sourceDirectory>
+          <targetDirectory>${basedir}/target/site/book/</targetDirectory>
+          <htmlCustomization>${basedir}/src/site/docbookx/customization.xsl
+          </htmlCustomization>
+          <chunkerOutputEncoding>UTF-8</chunkerOutputEncoding>
+          <sectionAutolabelMaxDepth>100</sectionAutolabelMaxDepth>
+          <sectionAutolabel>true</sectionAutolabel>
+          <sectionLabelIncludesComponentLabel>true
+          </sectionLabelIncludesComponentLabel>
+          <tocMaxDepth>2</tocMaxDepth>
+          <insertXrefPageNumber>yes</insertXrefPageNumber>
+          <xincludeSupported>true</xincludeSupported>
+          <useIdAsFilename>true</useIdAsFilename>
+        </configuration>
+        <executions>
+          <execution>
+            <id>multipage</id>
+            <goals>
+              <goal>generate-html</goal>
+            </goals>
+            <phase>pre-site</phase>
+            <configuration>
+              <navigShowtitles>true</navigShowtitles>
+              <chunkedOutput>true</chunkedOutput>
+              <imgSrcPath>../../images/</imgSrcPath>
+              <htmlStylesheet>../../css/freebsd_docbook.css</htmlStylesheet>
+            </configuration>
+          </execution>
+          <execution>
+            <id>doc</id>
+            <goals>
+              <goal>generate-pdf</goal>
+            </goals>
+            <phase>pre-site</phase>
+            <configuration>
+              <showXslMessages>true</showXslMessages>
+              <imgSrcPath>${basedir}/src/site/resources/images/</imgSrcPath>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>stage-for-scm-publish</id>
+            <phase>post-site</phase>
+            <goals>
+              <goal>stage</goal>
+            </goals>
+            <configuration>
+              <skipDeploy>false</skipDeploy>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-scm-publish-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>scm-publish</id>
+            <phase>site-deploy</phase>
+            <goals>
+              <goal>publish-scm</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.7</version>
+      </plugin>
+    </plugins>
+  </reporting>
 
   <issueManagement>
     <system>JIRA</system>
@@ -363,19 +522,23 @@
       <post>commits@bigtop.apache.org</post>
       <subscribe>commits-subscribe@bigtop.apache.org</subscribe>
       <unsubscribe>commits-unsubscribe@bigtop.apache.org</unsubscribe>
-      <archive>http://mail-archives.apache.org/mod_mbox/bigtop-commits/</archive>
+      <archive>http://mail-archives.apache.org/mod_mbox/bigtop-commits/
+      </archive>
     </mailingList>
   </mailingLists>
- <scm>
-    <connection>scm:git:git@github.com:Altiscale/bigtop</connection>
-    <developerConnection>scm:git:git@github.com:Altiscale/bigtop</developerConnection>
-    <tag>release-0.7.0.altiscale-${env.BUILD_NUMBER}</tag>
-    <url></url>
+
+  <scm>
+    <connection>scm:git:https://git-wip-us.apache.org/repos/asf/bigtop.git
+    </connection>
+    <url>https://git-wip-us.apache.org/repos/asf?p=bigtop.git</url>
   </scm>
-  <modules>
-    <module>bigtop-test-framework</module>
-    <module>bigtop-tests</module>
-  </modules>
+
+  <distributionManagement>
+    <site>
+      <id>apache.website</id>
+      <url>scm:svn:https://svn.apache.org/repos/infra/websites/staging/bigtop/trunk/content</url>
+    </site>
+  </distributionManagement>
 
   <profiles>
     <profile>

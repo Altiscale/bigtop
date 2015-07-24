@@ -28,7 +28,7 @@
 %define config_hadoop %{etc_hadoop}/conf
 %define config_yarn %{etc_yarn}/conf
 %define config_httpfs %{etc_httpfs}/conf
-%define tomcat_deployment_httpfs %{etc_httpfs}/tomcat-deployment
+%define tomcat_deployment_httpfs %{etc_httpfs}/tomcat-conf
 %define lib_hadoop_dirname /usr/lib
 %define lib_hadoop %{lib_hadoop_dirname}/%{name}
 %define lib_httpfs %{lib_hadoop_dirname}/%{name}-httpfs
@@ -59,7 +59,7 @@
 %define httpfs_services httpfs
 %define mapreduce_services mapreduce-historyserver
 %define hdfs_services hdfs-namenode hdfs-secondarynamenode hdfs-datanode hdfs-zkfc hdfs-journalnode
-%define yarn_services yarn-resourcemanager yarn-nodemanager yarn-proxyserver
+%define yarn_services yarn-resourcemanager yarn-nodemanager yarn-proxyserver yarn-timelineserver
 %define hadoop_services %{hdfs_services} %{mapreduce_services} %{yarn_services} %{httpfs_services}
 # Hadoop outputs built binaries into %{hadoop_build}
 %define hadoop_build_path build
@@ -136,7 +136,7 @@ Name: %{hadoop_name}
 Version: %{hadoop_version}
 Release: %{hadoop_release}
 Summary: Hadoop is a software platform for processing vast amounts of data
-License: Apache License v2.0
+License: ASL 2.0
 URL: http://hadoop.apache.org/core/
 Group: Development/Libraries
 Source0: %{name}-%{hadoop_base_version}.tar.gz
@@ -150,7 +150,7 @@ Source7: hadoop-fuse-dfs.1
 Source8: hdfs.conf
 Source9: yarn.conf
 Source10: mapreduce.conf
-Source11: init.d.tmpl 
+Source11: init.d.tmpl
 Source12: hadoop-hdfs-namenode.svc
 Source13: hadoop-hdfs-datanode.svc
 Source14: hadoop-hdfs-secondarynamenode.svc
@@ -164,6 +164,12 @@ Source21: yarn.default
 Source22: hadoop-layout.sh
 Source23: hadoop-hdfs-zkfc.svc
 Source24: hadoop-hdfs-journalnode.svc
+Source25: httpfs-tomcat-deployment.sh
+Source26: yarn.1
+Source27: hdfs.1
+Source28: mapred.1
+Source29: hadoop-yarn-timelineserver.svc
+#BIGTOP_PATCH_FILES
 Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id} -u -n)
 BuildRequires: fuse-devel, fuse, cmake
 Requires: coreutils, /usr/sbin/useradd, /usr/sbin/usermod, /sbin/chkconfig, /sbin/service, bigtop-utils >= 0.7, zookeeper >= 3.4.0
@@ -184,7 +190,7 @@ Requires: sh-utils, insserv
 %if %{!?suse_version:1}0 && %{!?mgaversion:1}0
 BuildRequires: pkgconfig, fuse-libs, redhat-rpm-config, lzo-devel, openssl-devel
 # Required for init scripts
-Requires: sh-utils, redhat-lsb
+Requires: sh-utils, /lib/lsb/init-functions
 %endif
 
 %if  0%{?mgaversion}
@@ -217,12 +223,12 @@ located.
 %package hdfs
 Summary: The Hadoop Distributed File System
 Group: System/Daemons
-Requires: %{name} = %{version}-%{release}, bigtop-jsvc
+Requires: %{name} = %{version}-%{release}, bigtop-groovy, bigtop-jsvc
 
 %description hdfs
-Hadoop Distributed File System (HDFS) is the primary storage system used by 
-Hadoop applications. HDFS creates multiple replicas of data blocks and distributes 
-them on compute nodes throughout a cluster to enable reliable, extremely rapid 
+Hadoop Distributed File System (HDFS) is the primary storage system used by
+Hadoop applications. HDFS creates multiple replicas of data blocks and distributes
+them on compute nodes throughout a cluster to enable reliable, extremely rapid
 computations.
 
 %package yarn
@@ -232,18 +238,18 @@ Requires: %{name} = %{version}-%{release}
 
 %description yarn
 YARN (Hadoop NextGen MapReduce) is a general purpose data-computation framework.
-The fundamental idea of YARN is to split up the two major functionalities of the 
+The fundamental idea of YARN is to split up the two major functionalities of the
 JobTracker, resource management and job scheduling/monitoring, into separate daemons:
 ResourceManager and NodeManager.
 
-The ResourceManager is the ultimate authority that arbitrates resources among all 
+The ResourceManager is the ultimate authority that arbitrates resources among all
 the applications in the system. The NodeManager is a per-node slave managing allocation
-of computational resources on a single node. Both work in support of per-application 
+of computational resources on a single node. Both work in support of per-application
 ApplicationMaster (AM).
 
-An ApplicationMaster is, in effect, a framework specific library and is tasked with 
-negotiating resources from the ResourceManager and working with the NodeManager(s) to 
-execute and monitor the tasks. 
+An ApplicationMaster is, in effect, a framework specific library and is tasked with
+negotiating resources from the ResourceManager and working with the NodeManager(s) to
+execute and monitor the tasks.
 
 
 %package mapreduce
@@ -252,7 +258,7 @@ Group: System/Daemons
 Requires: %{name}-yarn = %{version}-%{release}
 
 %description mapreduce
-Hadoop MapReduce is a programming model and software framework for writing applications 
+Hadoop MapReduce is a programming model and software framework for writing applications
 that rapidly process vast amounts of data in parallel on large clusters of compute nodes.
 
 
@@ -301,8 +307,8 @@ Requires: %{name}-hdfs = %{version}-%{release}
 Requires(pre): %{name} = %{version}-%{release}
 
 %description hdfs-journalnode
-The HDFS JournalNode is responsible for persisting NameNode edit logs. 
-In a typical deployment the JournalNode daemon runs on at least three 
+The HDFS JournalNode is responsible for persisting NameNode edit logs.
+In a typical deployment the JournalNode daemon runs on at least three
 separate machines in the cluster.
 
 %package hdfs-datanode
@@ -360,6 +366,16 @@ Requires(pre): %{name}-yarn = %{version}-%{release}
 %description yarn-proxyserver
 The web proxy server sits in front of the YARN application master web UI.
 
+%package yarn-timelineserver
+Summary: YARN Timeline Server
+Group: System/Daemons
+Requires: %{name}-yarn = %{version}-%{release}
+Requires(pre): %{name} = %{version}-%{release}
+Requires(pre): %{name}-yarn = %{version}-%{release}
+
+%description yarn-timelineserver
+Storage and retrieval of applications' current as well as historic information in a generic fashion is solved in YARN through the Timeline Server.
+
 %package mapreduce-historyserver
 Summary: MapReduce History Server
 Group: System/Daemons
@@ -414,6 +430,13 @@ AutoReq: no
 %description libhdfs
 Hadoop Filesystem Library
 
+%package libhdfs-devel
+Summary: Development support for libhdfs
+Group: Development/Libraries
+Requires: hadoop = %{version}-%{release}, hadoop-libhdfs = %{version}-%{release}
+
+%description libhdfs-devel
+Includes examples and header files for accessing HDFS from C
 
 %package hdfs-fuse
 Summary: Mountable HDFS
@@ -438,7 +461,7 @@ These projects (enumerated below) allow HDFS to be mounted (on most flavors of U
 %prep
 %setup -n %{name}-%{hadoop_base_version}-src
 
-
+#BIGTOP_PATCH_COMMANDS
 %build
 # This assumes that you installed Java JDK 6 and set JAVA_HOME
 # This assumes that you installed Forrest and set FORREST_HOME
@@ -527,7 +550,7 @@ getent group hadoop >/dev/null || groupadd -r hadoop
 getent group hdfs >/dev/null   || groupadd -r hdfs
 getent passwd hdfs >/dev/null || /usr/sbin/useradd --comment "Hadoop HDFS" --shell /bin/bash -M -r -g hdfs -G hadoop --home %{state_hdfs} hdfs
 
-%pre httpfs 
+%pre httpfs
 getent group httpfs >/dev/null   || groupadd -r httpfs
 getent passwd httpfs >/dev/null || /usr/sbin/useradd --comment "Hadoop HTTPFS" --shell /bin/bash -M -r -g httpfs -G httpfs --home %{run_httpfs} httpfs
 
@@ -544,7 +567,9 @@ getent passwd mapred >/dev/null || /usr/sbin/useradd --comment "Hadoop MapReduce
 
 %post httpfs
 %{alternatives_cmd} --install %{config_httpfs} %{name}-httpfs-conf %{etc_httpfs}/conf.empty 10
-%{alternatives_cmd} --install %{tomcat_deployment_httpfs} %{name}-tomcat-deployment %{etc_httpfs}/tomcat-deployment.dist 10
+%{alternatives_cmd} --install %{tomcat_deployment_httpfs} %{name}-httpfs-tomcat-conf %{etc_httpfs}/tomcat-conf.dist 10
+%{alternatives_cmd} --install %{tomcat_deployment_httpfs} %{name}-httpfs-tomcat-conf %{etc_httpfs}/tomcat-conf.https 5
+
 chkconfig --add %{name}-httpfs
 
 %preun
@@ -557,7 +582,8 @@ if [ $1 = 0 ]; then
   service %{name}-httpfs stop > /dev/null 2>&1
   chkconfig --del %{name}-httpfs
   %{alternatives_cmd} --remove %{name}-httpfs-conf %{etc_httpfs}/conf.empty || :
-  %{alternatives_cmd} --remove %{name}-tomcat-deployment %{etc_httpfs}/tomcat-deployment.dist || :
+  %{alternatives_cmd} --remove %{name}-httpfs-tomcat-conf %{etc_httpfs}/tomcat-conf.dist || :
+  %{alternatives_cmd} --remove %{name}-httpfs-tomcat-conf %{etc_httpfs}/tomcat-conf.https || :
 fi
 
 %postun httpfs
@@ -575,7 +601,7 @@ fi
 %config(noreplace) /etc/security/limits.d/yarn.conf
 %{lib_hadoop}/libexec/yarn-config.sh
 %{lib_yarn}
-%attr(6050,root,yarn) %{lib_yarn}/bin/container-executor
+%attr(4754,root,yarn) %{lib_yarn}/bin/container-executor
 %{bin_hadoop}/yarn
 %attr(0775,yarn,hadoop) %{run_yarn}
 %attr(0775,yarn,hadoop) %{log_yarn}
@@ -594,6 +620,8 @@ fi
 %attr(0755,hdfs,hadoop) %{state_hdfs}
 %attr(1777,hdfs,hadoop) %{state_hdfs}/cache
 %{lib_hadoop}/libexec/init-hdfs.sh
+%{lib_hadoop}/libexec/init-hcfs.json
+%{lib_hadoop}/libexec/init-hcfs.groovy
 
 %files mapreduce
 %defattr(-,root,root)
@@ -623,6 +651,10 @@ fi
 %config(noreplace) %{etc_hadoop}/conf.empty/configuration.xsl
 %config(noreplace) %{etc_hadoop}/conf.empty/hadoop-env.sh
 %config(noreplace) %{etc_hadoop}/conf.empty/hadoop-policy.xml
+%config(noreplace) %{etc_hadoop}/conf.empty/kms-acls.xml
+%config(noreplace) %{etc_hadoop}/conf.empty/kms-env.sh
+%config(noreplace) %{etc_hadoop}/conf.empty/kms-log4j.properties
+%config(noreplace) %{etc_hadoop}/conf.empty/kms-site.xml
 %config(noreplace) /etc/default/hadoop
 /etc/bash_completion.d/hadoop
 %{lib_hadoop}/*.jar
@@ -632,8 +664,12 @@ fi
 %{lib_hadoop}/etc
 %{lib_hadoop}/libexec/hadoop-config.sh
 %{lib_hadoop}/libexec/hadoop-layout.sh
+%{lib_hadoop}/libexec/kms-config.sh
 %{bin_hadoop}/hadoop
 %{man_hadoop}/man1/hadoop.1.*
+%{man_hadoop}/man1/yarn.1.*
+%{man_hadoop}/man1/hdfs.1.*
+%{man_hadoop}/man1/mapred.1.*
 
 # Shouldn't the following be moved to hadoop-hdfs?
 %exclude %{lib_hadoop}/bin/fuse_dfs
@@ -644,8 +680,7 @@ fi
 
 %files httpfs
 %defattr(-,root,root)
-%config(noreplace) %{etc_httpfs}/conf.empty
-%config(noreplace) %{etc_httpfs}/tomcat-deployment.dist
+%config(noreplace) %{etc_httpfs}
 %config(noreplace) /etc/default/%{name}-httpfs
 %{lib_hadoop}/libexec/httpfs-config.sh
 %{initd_dir}/%{name}-httpfs
@@ -681,6 +716,7 @@ fi
 %service_macro yarn-resourcemanager
 %service_macro yarn-nodemanager
 %service_macro yarn-proxyserver
+%service_macro yarn-timelineserver
 %service_macro mapreduce-historyserver
 
 # Pseudo-distributed Hadoop installation
@@ -703,8 +739,9 @@ fi
 %files libhdfs
 %defattr(-,root,root)
 %{_libdir}/libhdfs*
+
+%files libhdfs-devel
 %{_includedir}/hdfs.h
-# -devel should be its own package
 #%doc %{_docdir}/libhdfs-%{hadoop_version}
 
 %files hdfs-fuse

@@ -14,36 +14,49 @@
 # limitations under the License.
 
 class spark {
-  class common {
-    package { "spark":
+  class common ($master_host = $fqdn, $master_port = "7077", $master_ui_port = "18080") {
+    package { "spark-core":
       ensure => latest,
     }
 
     file { "/etc/spark/conf/spark-env.sh":
         content => template("spark/spark-env.sh"),
-        require => [Package["spark"]],
+        require => [Package["spark-core"]],
     }
   }
 
-  define master($master_host = $fqdn, $master_port = "7077", $master_ui_port = "18080") {
+  class master {
     include common   
 
-    service { "spark-master":
-      ensure => running,
-      require => [ Package["spark"], File["/etc/spark/conf/spark-env.sh"], ],
-      subscribe => [Package["spark"], File["/etc/spark/conf/spark-env.sh"] ],
-      hasrestart => true,
-      hasstatus => true,
-    } 
+    package { "spark-master":
+      ensure => latest,
+    }
+
+    if ( $fqdn == $common::master_host ) {
+      service { "spark-master":
+        ensure => running,
+        require => [ Package["spark-master"], File["/etc/spark/conf/spark-env.sh"], ],
+        subscribe => [Package["spark-master"], File["/etc/spark/conf/spark-env.sh"] ],
+        hasrestart => true,
+        hasstatus => true,
+      }
+    }
   }
 
-  define worker($master_host = $fqdn, $master_port = "7077", $master_ui_port = "18080") {
+  class worker {
     include common
 
+    package { "spark-worker":
+      ensure => latest,
+    }
+
+    if ( $fqdn == $common::master_host ) {
+      Service["spark-master"] ~> Service["spark-worker"]
+    }
     service { "spark-worker":
       ensure => running,
-      require => [ Package["spark"], File["/etc/spark/conf/spark-env.sh"], ],
-      subscribe => [Package["spark"], File["/etc/spark/conf/spark-env.sh"] ],
+      require => [ Package["spark-worker"], File["/etc/spark/conf/spark-env.sh"], ],
+      subscribe => [Package["spark-worker"], File["/etc/spark/conf/spark-env.sh"] ],
       hasrestart => true,
       hasstatus => true,
     } 

@@ -18,11 +18,11 @@
 
 <configuration>
 
-<% if hadoop_security_authentication == "kerberos" %>
+<% if @hadoop_security_authentication == "kerberos" %>
   <!-- HistoryServer security configs -->
   <property>
     <name>mapreduce.jobhistory.principal</name>
-    <value>mapred/_HOST@<%= kerberos_realm %></value>
+    <value>mapred/_HOST@<%= @kerberos_realm %></value>
   </property>
   <property>
     <name>mapreduce.jobhistory.keytab</name>
@@ -32,31 +32,31 @@
   <!-- JobTracker security configs -->
   <property>
     <name>mapreduce.jobtracker.kerberos.principal</name>
-    <value>mapred/_HOST@<%= kerberos_realm %></value>
+    <value>mapred/_HOST@<%= @kerberos_realm %></value>
   </property>
   <property>
     <name>mapreduce.jobtracker.kerberos.https.principal</name>
-    <value>host/_HOST@<%= kerberos_realm %></value>
+    <value>host/_HOST@<%= @kerberos_realm %></value>
   </property>
   <property>
     <name>mapreduce.jobtracker.keytab.file</name>
     <value>/etc/mapred.keytab</value> <!-- path to the MapReduce keytab -->
   </property>
-  
+
   <!-- TaskTracker security configs -->
   <property>
     <name>mapreduce.tasktracker.kerberos.principal</name>
-    <value>mapred/_HOST@<%= kerberos_realm %></value>
+    <value>mapred/_HOST@<%= @kerberos_realm %></value>
   </property>
   <property>
     <name>mapreduce.tasktracker.kerberos.https.principal</name>
-    <value>host/_HOST@<%= kerberos_realm %></value>
+    <value>host/_HOST@<%= @kerberos_realm %></value>
   </property>
   <property>
     <name>mapreduce.tasktracker.keytab.file</name>
     <value>/etc/mapred.keytab</value> <!-- path to the MapReduce keytab -->
   </property>
-  
+
   <!-- TaskController settings -->
   <property>
     <name>mapreduce.tasktracker.taskcontroller</name>
@@ -66,261 +66,144 @@
     <name>mapreduce.tasktracker.group</name>
     <value>mapred</value>
   </property>
-<% end %>
 
-<% if has_variable?("mapred_acls_enabled") %>
+<% end %>
+<% if @mapreduce_cluster_acls_enabled %>
   <property>
     <name>mapreduce.cluster.acls.enabled</name>
-    <value><%= mapred_acls_enabled %></value>
+    <value><%= @mapreduce_cluster_acls_enabled %></value>
   </property>
-<% end %>
 
-<!-- specify JobTracker TaskScheduler -->
-<% if has_variable?("hadoop_jobtracker_taskscheduler") %>
-  <property>
-    <name>mapreduce.jobtracker.taskscheduler</name>
-    <value><%= hadoop_jobtracker_taskscheduler %></value>
-  </property>
 <% end %>
-
-<% if has_variable?("hadoop_config_mapred_fairscheduler_assignmultiple") %>
-  <property>
-    <name>mapred.fairscheduler.assignmultiple</name>
-    <value><%= hadoop_config_mapred_fairscheduler_assignmultiple %></value>
-  </property>
-<% end %>
-
-<% if has_variable?("hadoop_config_mapred_fairscheduler_sizebasedweight") %>
-  <property>
-    <name>mapred.fairscheduler.sizebasedweight</name>
-    <value><%= hadoop_config_mapred_fairscheduler_assignmultiple %></value>
-  </property>
-<% end %>
-
-<% if has_variable?("hadoop_jobtracker_fairscheduler_weightadjuster") %>
-  <property>
-    <name>mapred.fairscheduler.weightadjuster</name>
-    <value><%= hadoop_jobtracker_fairscheduler_weightadjuster %></value>
-  </property>
-<% end %>
-
-<% if has_variable?("hadoop_hs_host") %>
+<% if @mapreduce_jobhistory_host %>
   <property>
     <name>mapreduce.jobhistory.address</name>
-    <value><%= hadoop_hs_host %>:<%= hadoop_hs_port %></value>
+    <value><%= @mapreduce_jobhistory_host %>:<%= @mapreduce_jobhistory_port %></value>
   </property>
   <property>
     <name>mapreduce.jobhistory.webapp.address</name>
-    <value><%= hadoop_hs_host %>:<%= hadoop_hs_webapp_port %></value>
+    <value><%= @mapreduce_jobhistory_host %>:<%= @mapreduce_jobhistory_webapp_port %></value>
   </property>
-<% end %>
 
+<% end %>
+<% if defined? @mapreduce_framework_name -%>
+  <property>
+    <name>mapreduce.framework.name</name>
+    <value><%= @mapreduce_framework_name %></value>
+  </property>
+
+<!-- If not specified, we automatically choose the best framework for users -->
+<% else -%>
+<% if @all or @components.include? "tez" -%>
+  <property>
+    <name>mapreduce.framework.name</name>
+    <value>yarn-tez</value>
+  </property>
+
+<% else -%>
   <property>
     <name>mapreduce.framework.name</name>
     <value>yarn</value>
   </property>
 
-  <property>
-    <name>mapreduce.jobtracker.address</name>
-    <value><%= hadoop_jobtracker_host %>:<%= hadoop_jobtracker_port%></value>
-  </property>
-
+<% end -%>
+<% end -%>
   <property>
     <name>mapreduce.cluster.local.dir</name>
-    <value><%= mapred_data_dirs.join(",") %></value>
+    <value><%= @mapred_data_dirs.join(",") %></value>
     <final>true</final>
   </property>
 
-  <!-- property>
+<% if @mapreduce_cluster_temp_dir -%>
+  <property>
     <name>mapreduce.cluster.temp.dir</name>
-    <value>/mapred/system</value>
-  </property -->
-
-  <property>
-    <name>mapreduce.jobtracker.system.dir</name>
-    <value>/mapred/system</value>
+    <value><%= @mapreduce_cluster_temp_dir %></value>
   </property>
 
-  <property>
-    <name>mapreduce.jobtracker.staging.root.dir</name>
-    <value>/user</value>
-  </property>
-
+<% end -%>
+<% if @yarn_app_mapreduce_am_staging_dir -%>
   <property>
     <name>yarn.app.mapreduce.am.staging-dir</name>
-    <value>/user</value>
+    <value><%= @yarn_app_mapreduce_am_staging_dir %></value>
   </property>
 
+<% end -%>
   <property>
     <name>mapred.child.java.opts</name>
     <value>-Xmx1024m</value>
   </property>
 
-<% if has_variable?("hadoop_config_mapred_child_ulimit") %>
+<% if @mapreduce_task_io_sort_mb -%>
   <property>
-    <!-- set this to ~1.5x the heap size in mapred.child.java.opts -->
-    <name>mapred.child.ulimit</name>
-    <value><%= hadoop_config_mapred_child_ulimit %></value>
+    <name>mapreduce.task.io.sort.mb</name>
+    <value><%= @mapreduce_task_io_sort_mb %></value>
   </property>
-<% else %>
-  <property>
-    <!-- set this to ~1.5x the heap size in mapred.child.java.opts -->
-    <name>mapred.child.ulimit</name>
-    <value>unlimited</value>
-  </property>
-<% end %>
 
-<% if has_variable?("hadoop_config_io_sort_mb") %>
+<% end -%>
+<% if @mapreduce_task_io_sort_factor -%>
   <property>
-    <name>io.sort.mb</name>
-    <value><%= hadoop_config_io_sort_mb %></value>
+    <name>mapreduce.task.io.sort.factor</name>
+    <value><%= @mapreduce_task_io_sort_factor %></value>
   </property>
-<% else %>
-  <property>
-    <name>io.sort.mb</name>
-    <value>256</value>
-  </property>
-<% end %>
 
-<% if has_variable?("hadoop_config_io_sort_factor") %>
+<% end -%>
+<% if @mapreduce_reduce_shuffle_parallelcopies -%>
   <property>
-    <name>io.sort.factor</name>
-    <value><%= hadoop_config_io_sort_factor %></value>
-  </property>
-<% else %>
-  <property>
-    <name>io.sort.factor</name>
-    <value>64</value>
-  </property>
-<% end %>
-
-<% if has_variable?("hadoop_config_mapred_job_tracker_handler_count") %>
-  <property>
-    <name>mapred.job.tracker.handler.count</name>
-    <value><%= hadoop_config_mapred_job_tracker_handler_count %></value>
-    <final>true</final>
-  </property>
-<% else %>
-  <property>
-    <name>mapred.job.tracker.handler.count</name>
-    <value>10</value>
-    <final>true</final>
-  </property>
-<% end %>
-
-  <property>
-    <name>mapred.map.tasks.speculative.execution</name>
-    <value>true</value>
-  </property>
-  
-<% if has_variable?("hadoop_config_mapred_reduce_parallel_copies") %>
-  <property>
-    <name>mapred.reduce.parallel.copies</name>
+    <name>mapreduce.reduce.shuffle.parallelcopies</name>
     <!-- set this to somewhere between sqrt(nodes) and nodes/2.
     for <20 nodes, set == |nodes| -->
-    <value><%= hadoop_config_mapred_reduce_parallel_copies %></value>
-  </property>
-<% else %>
-  <property>
-    <name>mapred.reduce.parallel.copies</name>
-    <!-- set this to somewhere between sqrt(nodes) and nodes/2.
-    for <20 nodes, set == |nodes| -->
-    <value>5</value>
-  </property>
-<% end %>
-
-  <property>
-    <name>mapred.reduce.tasks</name>
-    <!-- set to numnodes * mapred.tasktracker.reduce.tasks.maximum -->
-    <value>30</value>
+    <value><%= @mapreduce_reduce_shuffle_parallelcopies %></value>
   </property>
 
-<% if has_variable?("hadoop_config_mapred_reduce_tasks_speculative_execution") %>
+<% end -%>
+<% if @mapreduce_tasktracker_map_tasks_maximum -%>
   <property>
-    <name>mapred.reduce.tasks.speculative.execution</name>
-    <value><%= hadoop_config_mapred_reduce_tasks_speculative_execution %></value>
-  </property>
-<% else %>
-  <property>
-    <name>mapred.reduce.tasks.speculative.execution</name>
-    <value>false</value>
-  </property>
-<% end %>
-
-  <property>
-    <name>mapred.tasktracker.map.tasks.maximum</name>
+    <name>mapreduce.tasktracker.map.tasks.maximum</name>
     <!-- see other kb entry about this one. -->
-    <value><%= [1, processorcount.to_i * 0.80].max.round %></value>
+    <value><%= @mapreduce_tasktracker_map_tasks_maximum %></value>
     <final>true</final>
   </property>
 
+<% end -%>
+<% if @mapreduce_tasktracker_reduce_tasks_maximum -%>
   <property>
-    <name>mapred.tasktracker.reduce.tasks.maximum</name>
+    <name>mapreduce.tasktracker.reduce.tasks.maximum</name>
     <!-- see other kb entry about this one. -->
-    <value><%= [1, processorcount.to_i * 0.20].max.round %></value>
+    <value><%= @mapreduce_tasktracker_reduce_tasks_maximum %></value>
     <final>true</final>
   </property>
 
-<% if has_variable?("hadoop_config_tasktracker_http_threads") %>
+<% end -%>
+<% if @mapreduce_tasktracker_http_threads -%>
   <property>
-    <name>tasktracker.http.threads</name>
-    <value><%= hadoop_config_tasktracker_http_threads %></value>
+    <name>mapreduce.tasktracker.http.threads</name>
+    <value><%= @mapreduce_tasktracker_http_threads %></value>
     <final>true</final>
   </property>
-<% else %>
-  <property>
-    <name>tasktracker.http.threads</name>
-    <value>60</value>
-    <final>true</final>
-  </property>
-<% end %>
 
+<% end -%>
+<% if @mapreduce_output_fileoutputformat_compress_type -%>
   <property>
-    <name>mapred.output.compression.type</name>
-    <value>BLOCK</value>
+    <name>mapreduce.output.fileoutputformat.compress.type</name>
+    <value><%= @mapreduce_output_fileoutputformat_compress_type %></value>
     <description>If the job outputs are to compressed as
     SequenceFiles, how should they be compressed? Should be one of
     NONE, RECORD or BLOCK.</description>
   </property>
 
-<% if has_variable?("hadoop_config_use_compression") %>
+<% end -%>
+<% if @mapreduce_map_output_compress -%>
   <property>
-    <name>mapred.compress.map.output</name>
-    <value><%= hadoop_config_use_compression %></value>
+    <name>mapreduce.map.output.compress</name>
+    <value><%= @mapreduce_map_output_compress %></value>
   </property>
-<% else %>
-  <property>
-    <name>mapred.compress.map.output</name>
-    <value>false</value>
-  </property>
-<% end %>
 
-<% if has_variable?("hadoop_config_mapred_reduce_slowstart_completed_maps") %>
+<% end -%>
+<% if @mapreduce_job_reduce_slowstart_completedmaps -%>
   <property>
-    <name>mapred.reduce.slowstart.completed.maps</name>
-    <value><%= hadoop_config_mapred_reduce_slowstart_completed_maps %></value>
+    <name>mapreduce.job.reduce.slowstart.completedmaps</name>
+    <value><%= @mapreduce_job_reduce_slowstart_completedmaps %></value>
   </property>
-<% end %>
 
-<% if has_variable?("hadoop_jobtracker_thrift_port") %>
-  <!-- Enable Hue plugins -->
-  <property>
-    <name>jobtracker.thrift.address</name>
-    <value>0.0.0.0:<%= hadoop_jobtracker_thrift_port %></value>
-  </property>
-<% end %>
-<% if has_variable?("hadoop_mapred_jobtracker_plugins") %>
-  <property>
-    <name>mapred.jobtracker.plugins</name>
-    <value><%= hadoop_mapred_jobtracker_plugins %></value>
-    <description>Comma-separated list of jobtracker plug-ins to be activated.</description>
-  </property>
-<% end %>
-<% if has_variable?("hadoop_mapred_tasktracker_plugins") %>
-  <property>
-    <name>mapred.tasktracker.instrumentation</name>
-    <value><%= hadoop_mapred_tasktracker_plugins %></value>
-  </property>
-<% end %>
-
+<% end -%>
 </configuration>

@@ -78,6 +78,6 @@ public class TestHueSmoke {
       }
     }
     assertEquals("Application(s) ${failedApps} failed to respond",
-                 failedApps.size(), 0);
+      failedApps.size(), 0);
   }
 }

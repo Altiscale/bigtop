@@ -16,12 +16,11 @@
 class bigtop_toolchain::maven {
 
   include bigtop_toolchain::deps
-
   exec {'/bin/tar xvzf /usr/src/apache-maven-3.0.5-bin.tar.gz':
     cwd         => '/usr/local',
     refreshonly => true,
-    subscribe   => Exec["/usr/bin/wget ftp://mirror.reverse.net/pub/apache/maven/maven-3/3.0.5/binaries/apache-maven-3.0.5-bin.tar.gz"],
-    require     => Exec["/usr/bin/wget ftp://mirror.reverse.net/pub/apache/maven/maven-3/3.0.5/binaries/apache-maven-3.0.5-bin.tar.gz"],
+    subscribe   => Exec["/usr/bin/wget $bigtop_toolchain::deps::apache_prefix/maven/maven-3/3.0.5/binaries/apache-maven-3.0.5-bin.tar.gz"],
+    require     => Exec["/usr/bin/wget $bigtop_toolchain::deps::apache_prefix/maven/maven-3/3.0.5/binaries/apache-maven-3.0.5-bin.tar.gz"],
   }
   
   file {'/usr/local/maven':

@@ -90,6 +90,7 @@ done
 PREFIX=`echo $PREFIX | sed -e 's#/*$##'`
 BUILD_DIR=`echo $BUILD_DIR | sed -e 's#/*$##'`
 
+DOC_DIR=${DOC_DIR:-/usr/share/doc/hue}
 CONF_DIR=${CONF_DIR:-/etc/hue}
 LIB_DIR=${LIB_DIR:-/usr/lib/hue}
 VAR_DIR=${VAR_DIR:-/var/lib/hue}
@@ -105,10 +106,6 @@ BUNDLED_BUILD_DIR=$PREFIX/$LIB_DIR/build
 install -d -m 0755 $PREFIX/$HADOOP_DIR
 ln -fs $LIB_DIR/desktop/libs/hadoop/java-lib/*plugin*jar $PREFIX/$HADOOP_DIR
 
-# Hue Shell specific
-install -d -m 0755 $PREFIX/$LIB_DIR/apps/shell/src/shell/build/
-cp -f $BUILD_DIR/apps/shell/src/shell/build/setuid $PREFIX/$LIB_DIR/apps/shell/src/shell/build
-
 # Making the resulting tree relocatable
 # WARNING: We HAVE to run this twice, before and after the apps get registered.
 #          we have to run it one time before so that the path to the interpreter
@@ -118,9 +115,13 @@ cp -f $BUILD_DIR/apps/shell/src/shell/build/setuid $PREFIX/$LIB_DIR/apps/shell/s
 #          character (which is the limit for #!)
 (cd $PREFIX/$LIB_DIR ; bash tools/relocatable.sh)
 
+# remove RECORD files since it contains "real" paths confusing rpmbuild
+(cd $PREFIX/$LIB_DIR ; rm -f build/env/lib/python*/site-packages/*.dist-info/RECORD)
+(cd $PREFIX/$LIB_DIR ; rm -f build/env/lib/python*/dist-packages/*.dist-info/RECORD)
+
 # Remove Hue database and then recreate it, but with just the "right" apps
 rm -f $PREFIX/$LIB_DIR/desktop/desktop.db $PREFIX/$LIB_DIR/app.reg
-APPS="about filebrowser help proxy useradmin shell oozie jobbrowser jobsub metastore"
+APPS="about filebrowser help proxy useradmin oozie jobbrowser jobsub metastore"
 export DESKTOP_LOG_DIR=$BUILD_DIR
 export DESKTOP_LOGLEVEL=WARN
 export ROOT=$PREFIX/$LIB_DIR
@@ -147,6 +148,8 @@ sed -i -e '/\[\[yarn_clusters\]\]/,+20s@## submit_to=False@submit_to=True@' \
 install -d -m 0755 $PREFIX/$LOG_DIR
 rm -rf $PREFIX/$LIB_DIR/desktop/logs
 ln -s $LOG_DIR $PREFIX/$LIB_DIR/desktop/logs
+# remove the logs in build progress
+rm -rf $PREFIX/$LIB_DIR/apps/logs/*
 
 # Make binary scripts executables
 chmod 755 $BUNDLED_BUILD_DIR/env/bin/*
@@ -182,6 +185,9 @@ done
 # Remove bogus files
 rm -fv `find $PREFIX -iname "build_log.txt"`
 
+install -d ${PREFIX}/${DOC_DIR}
+cp -r ${BUILD_DIR}/build/docs/* ${PREFIX}/${DOC_DIR}/
+
 # FXIME: for Hue 3.0 the following section would need to go away (hence it is kept at the bottom)
 
 # Move desktop.db to a var location
@@ -191,7 +197,6 @@ mv $PREFIX/$LIB_DIR/desktop/desktop.db $PREFIX/$VAR_DIR
 # Move hue.pth to a var location
 mv $PREFIX/$LIB_DIR/build/env/lib/python*/site-packages/hue.pth $PREFIX/$VAR_DIR
 ln -s $VAR_DIR/hue.pth `ls -d $PREFIX/$LIB_DIR/build/env/lib/python*/site-packages/`/hue.pth
-rm $PREFIX/$LIB_DIR/build/env/lib/python*/site-packages/hue.link.pth
 
 # Move app.reg to a var location
 mv $PREFIX/$LIB_DIR/app.reg $PREFIX/$VAR_DIR
