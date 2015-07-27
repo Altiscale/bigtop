@@ -22,13 +22,13 @@
     <groupId>org.apache.bigtop.itest</groupId>
     <artifactId>bigtop-smokes</artifactId>
 
-    <version>1.0.0</version>
+    <version>1.0.0-altiscale-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <groupId>org.apache.bigtop.itest</groupId>
   <artifactId>giraph-smoke</artifactId>
 
-  <version>1.0.0</version>
+  <version>1.0.0-altiscale-SNAPSHOT</version>
 
   <name>giraphsmoke</name>
 
