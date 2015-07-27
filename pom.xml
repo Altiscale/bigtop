@@ -29,7 +29,7 @@
   <groupId>org.apache.bigtop</groupId>
   <artifactId>bigtop</artifactId>
 
-  <version>1.0.0</version>
+  <version>1.0.0-altiscale-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Bigtop</name>
@@ -54,11 +54,10 @@
     <spark.version>1.3.1</spark.version>
     <kafka.version>0.8.1.1</kafka.version>
     <phoenix.version>4.3.1</phoenix.version>
-    <spark-smoke.version>${project.version}</spark-smoke.version>
+    <spark-smoke.version>1.0.0-altiscale-SNAPSHOT</spark-smoke.version>
 
 
-    <!-- <itest-common.version>0.7.0-altiscale-SNAPSHOT</itest-common.version> -->
-    <itest-common.version>${project.version}</itest-common.version>
+    <itest-common.version>1.0.0-altiscale-SNAPSHOT</itest-common.version> 
     <groovy.version>2.1.8</groovy.version>
     <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
     <groovy-eclipse-compiler.version>2.8.0-01</groovy-eclipse-compiler.version>
@@ -303,9 +302,9 @@
           <artifactId>maven-release-plugin</artifactId>
           <version>2.3.2</version>
           <configuration>
-            <tag>release-0.7.0.altiscale-${env.BUILD_NUMBER}</tag>
-            <releaseVersion>0.7.0-altiscale-${env.BUILD_NUMBER}</releaseVersion>
-            <developmentVersion>0.7.0-altiscale-SNAPSHOT</developmentVersion>
+            <tag>release-1.0.0.altiscale-${env.BUILD_NUMBER}</tag>
+            <releaseVersion>1.0.0-altiscale-${env.BUILD_NUMBER}</releaseVersion>
+            <developmentVersion>1.0.0-altiscale-SNAPSHOT</developmentVersion>
             <preparationGoals>deploy</preparationGoals>
             <autoVersionSubmodules>true</autoVersionSubmodules>
             <suppressCommitBeforeTag>true</suppressCommitBeforeTag>
