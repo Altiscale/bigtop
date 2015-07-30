@@ -20,14 +20,14 @@
   <parent>
     <groupId>org.apache.bigtop.itest</groupId>
     <artifactId>bigtop-smokes</artifactId>
-    <version>1.0.0-altiscale-300</version>
+    <version>1.0.0-altiscale-SANPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.bigtop.itest</groupId>
   <artifactId>interfaces</artifactId>
-  <version>1.0.0-altiscale-300</version>
+  <version>1.0.0-altiscale-SANPSHOT</version>
   <name>interfaces</name>
 
 </project>
