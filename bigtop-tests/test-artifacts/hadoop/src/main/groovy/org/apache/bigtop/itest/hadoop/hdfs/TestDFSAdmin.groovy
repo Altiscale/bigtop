@@ -29,7 +29,9 @@ import org.apache.bigtop.itest.shell.Shell;
 import org.junit.experimental.categories.Category;
 import org.apache.bigtop.itest.interfaces.EssentialTests;
 import org.apache.bigtop.itest.interfaces.NormalTests;
+import net.jcip.annotations.NotThreadSafe;
 
+@NotThreadSafe
 public class TestDFSAdmin {
 
   // set debugging variable to true if you want error messages sent to stdout
