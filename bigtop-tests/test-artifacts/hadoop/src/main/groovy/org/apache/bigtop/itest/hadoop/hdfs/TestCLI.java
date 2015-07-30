@@ -28,6 +28,7 @@ import org.apache.hadoop.cli.util.CommandExecutor;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.bigtop.itest.shell.Shell;
+import org.apache.bigtop.itest.hadoop.hcfs.FSCmdExecutor;
 
 import org.junit.After;
 import org.junit.Before;
