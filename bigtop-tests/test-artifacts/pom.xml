@@ -21,14 +21,14 @@
   <parent>
     <groupId>org.apache.bigtop</groupId>
     <artifactId>bigtop</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-altiscale-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <groupId>org.apache.bigtop.itest</groupId>
   <artifactId>bigtop-smokes</artifactId>
   <packaging>pom</packaging>
-  <version>1.0.0</version>
+  <version>1.0.0-altiscale-SNAPSHOT</version>
   <name>bigtop-smokes</name>
 
 
@@ -38,7 +38,7 @@
     <module>package</module>
     <module>httpfs</module>
     <module>oozie</module>
-    <module>hbase</module>
+    <!--<module>hbase</module>-->
     <module>flume</module>
     <module>sqoop</module>
     <module>mahout</module>
