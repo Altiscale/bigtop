@@ -1,5 +1,3 @@
-USE  TEST_HIVE_NORMAL
-
 
 explain
 SELECT *

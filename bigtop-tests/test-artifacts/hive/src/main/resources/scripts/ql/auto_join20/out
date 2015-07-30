@@ -1,6 +1,3 @@
-USE  TEST_HIVE_NORMAL
-
-
 set hive.auto.convert.join = true
 
 
