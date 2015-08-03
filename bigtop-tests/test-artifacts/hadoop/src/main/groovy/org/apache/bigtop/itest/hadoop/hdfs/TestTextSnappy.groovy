@@ -23,7 +23,7 @@ import org.junit.BeforeClass
 import org.junit.Test
 import static org.junit.Assert.assertEquals
 import static org.apache.bigtop.itest.LogErrorsUtils.logError
-
+@Category ( NormalTests.class )
 class TestTextSnappy {
   static Shell sh = new Shell("/bin/bash -s")
   static String testDir = "testtextsnappy." + (new Date().getTime())
@@ -42,7 +42,8 @@ class TestTextSnappy {
   static void tearDown() {
     sh.exec("hadoop fs -rm -r -skipTrash ${testDir}")
   }
-
+  
+  
   @Test
   void testTextSnappy() {
     String cmd = "hadoop fs -text ${testDir}/${snappyFile}"
