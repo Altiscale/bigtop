@@ -23,9 +23,7 @@ import org.junit.BeforeClass
 import org.junit.Test
 import static org.junit.Assert.assertEquals
 import static org.apache.bigtop.itest.LogErrorsUtils.logError
-import org.apache.bigtop.itest.interfaces.NormalTests;
 
-@Category ( NormalTests.class )
 class TestTextSnappy {
   static Shell sh = new Shell("/bin/bash -s")
   static String testDir = "testtextsnappy." + (new Date().getTime())
