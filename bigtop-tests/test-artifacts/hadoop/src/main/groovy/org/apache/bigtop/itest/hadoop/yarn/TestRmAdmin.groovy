@@ -25,7 +25,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.apache.bigtop.itest.JarContent;
 import org.apache.bigtop.itest.shell.Shell;
+import org.apache.bigtop.itest.interfaces.NormalTests;
 
+@Category ( NormalTests.class )
 public class TestRmAdmin {
 
   // set debugging variable to true if you want error messages sent to stdout
