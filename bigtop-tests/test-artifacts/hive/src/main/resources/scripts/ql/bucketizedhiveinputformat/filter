@@ -1,7 +1,0 @@
-sed -e '/^EXPLAIN/,/Stage: Stage-0/d' \
-                -e '/Move Operator/,/name: test_hive_normal.t2/d' \
-                -e '/Fetch Operator/,/limit: -1/d' \
-                -e '/Stage: Stage-4/,/Stats-Aggr Operator/d' \
-                -e '/^Moved/d' \
-                -e '/^Deleted/d' |
-sed -e '/^Copying file\:/d'

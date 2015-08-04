@@ -1,5 +1,0 @@
-sed  -e '/^[ \t]\+/d' \
-     -e '/^Moved/d' \
-     -e '/^Deleted/d' |
-sed      -e '/^Copying file:/d' \
-     -e '/TOK_QUERY/d'
