@@ -27,9 +27,10 @@ import org.apache.bigtop.itest.shell.Shell;
 import org.apache.bigtop.itest.TestUtils
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
+import org.junit.experimental.categories.Category;
 import org.apache.bigtop.itest.interfaces.NormalTests;
 
-@Category ( NormalTests.class )
+@Category(NormalTests.class)
 public class TestHttpFs {
   private static Log LOG = LogFactory.getLog(TestHttpFs.class)
 
