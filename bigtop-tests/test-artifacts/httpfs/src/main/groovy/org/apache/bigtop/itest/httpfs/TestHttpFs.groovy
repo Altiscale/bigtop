@@ -29,6 +29,7 @@ import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import org.junit.experimental.categories.Category;
 import org.apache.bigtop.itest.interfaces.NormalTests;
+import org.apache.bigtop.itest.JarContent;
 
 @Category(NormalTests.class)
 public class TestHttpFs {
@@ -55,6 +56,7 @@ public class TestHttpFs {
 
   @BeforeClass
   public static void setUp() {
+    JarContent.unpackJarContainer(TestHttpFs.class, "." , null);
   }
 
   @AfterClass
