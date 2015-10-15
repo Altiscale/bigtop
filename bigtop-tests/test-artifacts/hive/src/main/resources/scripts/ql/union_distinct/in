@@ -1,0 +1,53 @@
+-- Licensed to the Apache Software Foundation (ASF) under one or more
+-- contributor license agreements.  See the NOTICE file distributed with
+-- this work for additional information regarding copyright ownership.
+-- The ASF licenses this file to You under the Apache License, Version 2.0
+-- (the "License") you may not use this file except in compliance with
+-- the License.  You may obtain a copy of the License at
+--
+--     http://www.apache.org/licenses/LICENSE-2.0
+--
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-- See the License for the specific language governing permissions and
+-- limitations under the License.
+USE  TEST_HIVE_NORMAL;
+
+explain
+SELECT *
+FROM (
+  SELECT 1 AS id
+  FROM (SELECT * FROM src LIMIT 1) s1
+  UNION DISTINCT
+  SELECT 2 AS id
+  FROM (SELECT * FROM src LIMIT 1) s1
+  UNION DISTINCT
+  SELECT 3 AS id
+  FROM (SELECT * FROM src LIMIT 1) s2
+  UNION DISTINCT
+  SELECT 4 AS id
+  FROM (SELECT * FROM src LIMIT 1) s2
+) a CLUSTER BY id;
+
+
+
+CREATE TABLE union_out_dist (id int);
+
+insert overwrite table union_out_dist
+SELECT *
+FROM (
+  SELECT 1 AS id
+  FROM (SELECT * FROM src LIMIT 1) s1
+  UNION DISTINCT
+  SELECT 2 AS id
+  FROM (SELECT * FROM src LIMIT 1) s1
+  UNION DISTINCT
+  SELECT 3 AS id
+  FROM (SELECT * FROM src LIMIT 1) s2
+  UNION DISTINCT
+  SELECT 4 AS id
+  FROM (SELECT * FROM src LIMIT 1) s2
+) a CLUSTER BY id;
+
+select * from union_out_dist cluster by id;

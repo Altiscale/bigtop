@@ -1,0 +1,35 @@
+USE TEST_HIVE_NORMAL;
+
+set hive.execution.engine=mr;
+set hive.auto.convert.sortmerge.join=true;
+set hive.optimize.bucketmapjoin=true;
+set hive.optimize.bucketmapjoin.sortedmerge=true;
+set hive.enforce.bucketing=true;
+set hive.enforce.sorting=true;
+set hive.auto.convert.join=true;
+
+drop table key_value_large;
+drop table key_value_small;
+
+create table key_value_large  (
+    key int,
+    value string
+)
+partitioned by (ds string)
+CLUSTERED BY (key) SORTED BY (key ASC) INTO 8 BUCKETS 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' STORED AS TEXTFILE;
+
+create table key_value_small (
+    key int,
+    value string
+)
+partitioned by (ds string)
+CLUSTERED BY (key) SORTED BY (key ASC) INTO 4 BUCKETS
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' STORED AS TEXTFILE;
+
+
+insert into table key_value_large partition(ds='2008-04-08') select key, value from src;
+insert into table key_value_small partition(ds='2008-04-08') select key, value from src;
+
+explain extended select count(*) from key_value_large a JOIN key_value_small b ON a.key = b.key;
+select count(*) from key_value_large a JOIN key_value_small b ON a.key = b.key;

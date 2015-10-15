@@ -1,0 +1,200 @@
+USE TEST_HIVE_NORMAL
+set hive.execution.engine=mr
+set hive.auto.convert.sortmerge.join=true
+set hive.optimize.bucketmapjoin=true
+set hive.optimize.bucketmapjoin.sortedmerge=true
+set hive.enforce.bucketing=true
+set hive.enforce.sorting=true
+set hive.auto.convert.join=true
+
+
+drop table key_value_large
+
+drop table key_value_small
+
+
+create table key_value_large  (
+    key int,
+    value string
+)
+partitioned by (ds string)
+CLUSTERED BY (key) SORTED BY (key ASC) INTO 8 BUCKETS 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' STORED AS TEXTFILE
+
+
+create table key_value_small (
+    key int,
+    value string
+)
+partitioned by (ds string)
+CLUSTERED BY (key) SORTED BY (key ASC) INTO 4 BUCKETS
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' STORED AS TEXTFILE
+
+
+
+insert into table key_value_large partition(ds='2008-04-08') select key, value from src
+
+insert into table key_value_small partition(ds='2008-04-08') select key, value from src
+
+
+explain extended select count(*) from key_value_large a JOIN key_value_small b ON a.key = b.key
+ABSTRACT SYNTAX TREE:
+  
+TOK_QUERY
+   TOK_FROM
+      TOK_JOIN
+         TOK_TABREF
+            TOK_TABNAME
+               key_value_large
+            a
+         TOK_TABREF
+            TOK_TABNAME
+               key_value_small
+            b
+         =
+            .
+               TOK_TABLE_OR_COL
+                  a
+               key
+            .
+               TOK_TABLE_OR_COL
+                  b
+               key
+   TOK_INSERT
+      TOK_DESTINATION
+         TOK_DIR
+            TOK_TMP_FILE
+      TOK_SELECT
+         TOK_SELEXPR
+            TOK_FUNCTIONSTAR
+               count
+
+
+STAGE DEPENDENCIES:
+  Stage-1 is a root stage
+  Stage-0 depends on stages: Stage-1
+
+STAGE PLANS:
+  Stage: Stage-1
+    Map Reduce
+      Map Operator Tree:
+          TableScan
+            alias: a
+            Statistics: Num rows: 1453 Data size: 5812 Basic stats: COMPLETE Column stats: NONE
+            GatherStats: false
+            Filter Operator
+              isSamplingPred: false
+              predicate: key is not null (type: boolean)
+              Statistics: Num rows: 727 Data size: 2908 Basic stats: COMPLETE Column stats: NONE
+              Sorted Merge Bucket Map Join Operator
+                condition map:
+                     Inner Join 0 to 1
+                keys:
+                  0 key (type: int)
+                  1 key (type: int)
+                Position of Big Table: 0
+                BucketMapJoin: true
+                Group By Operator
+                  aggregations: count()
+                  mode: hash
+                  outputColumnNames: _col0
+                  Reduce Output Operator
+                    sort order: 
+                    tag: -1
+                    value expressions: _col0 (type: bigint)
+                    auto parallelism: false
+      Path -> Alias:
+        hdfs://HADOOP/hive/test_hive_normal.db/key_value_large/ds=2008-04-08 [a]
+      Path -> Partition:
+        hdfs://HADOOP/hive/test_hive_normal.db/key_value_large/ds=2008-04-08 
+          Partition
+            base file name: ds=2008-04-08
+            input format: org.apache.hadoop.mapred.TextInputFormat
+            output format: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+            partition values:
+              ds 2008-04-08
+            properties:
+              COLUMN_STATS_ACCURATE false
+              bucket_count 8
+              bucket_field_name key
+              columns key,value
+              columns.comments 
+              columns.types int:string
+              field.delim |
+              file.inputformat org.apache.hadoop.mapred.TextInputFormat
+              file.outputformat org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+              location hdfs://HADOOP/hive/test_hive_normal.db/key_value_large/ds=2008-04-08
+              name test_hive_normal.key_value_large
+              numFiles 8
+              numRows -1
+              partition_columns ds
+              partition_columns.types string
+              rawDataSize -1
+              serialization.ddl struct key_value_large { i32 key, string value}
+              serialization.format |
+              serialization.lib org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+              totalSize 5812
+              transient_lastDdlTime 1444926027
+            serde: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+          
+              input format: org.apache.hadoop.mapred.TextInputFormat
+              output format: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+              properties:
+                SORTBUCKETCOLSPREFIX TRUE
+                bucket_count 8
+                bucket_field_name key
+                columns key,value
+                columns.comments 
+                columns.types int:string
+                field.delim |
+                file.inputformat org.apache.hadoop.mapred.TextInputFormat
+                file.outputformat org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+                location hdfs://HADOOP/hive/test_hive_normal.db/key_value_large
+                name test_hive_normal.key_value_large
+                partition_columns ds
+                partition_columns.types string
+                serialization.ddl struct key_value_large { i32 key, string value}
+                serialization.format |
+                serialization.lib org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+                transient_lastDdlTime 1444925986
+              serde: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+              name: test_hive_normal.key_value_large
+            name: test_hive_normal.key_value_large
+      Truncated Path -> Alias:
+        /test_hive_normal.db/key_value_large/ds=2008-04-08 [a]
+      Needs Tagging: false
+      Reduce Operator Tree:
+        Group By Operator
+          aggregations: count(VALUE._col0)
+          mode: mergepartial
+          outputColumnNames: _col0
+          File Output Operator
+            compressed: false
+            GlobalTableId: 0
+            directory: hdfs://HADOOP/tmp/hive/USER/85499292-248b-4c79-9002-46130bcee0bf/hive_2015-10-15_16-20-57_981_2038563170895411341-1/-mr-10001/.hive-staging_hive_2015-10-15_16-20-57_981_2038563170895411341-1/-ext-10002
+            NumFilesPerFileSink: 1
+            Stats Publishing Key Prefix: hdfs://HADOOP/tmp/hive/USER/85499292-248b-4c79-9002-46130bcee0bf/hive_2015-10-15_16-20-57_981_2038563170895411341-1/-mr-10001/.hive-staging_hive_2015-10-15_16-20-57_981_2038563170895411341-1/-ext-10002/
+            table:
+                input format: org.apache.hadoop.mapred.TextInputFormat
+                output format: org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+                properties:
+                  columns _col0
+                  columns.types bigint
+                  escape.delim \
+                  hive.serialization.extend.additional.nesting.levels true
+                  serialization.format 1
+                  serialization.lib org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+                serde: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+            TotalFiles: 1
+            GatherStats: false
+            MultiFileSpray: false
+
+  Stage: Stage-0
+    Fetch Operator
+      limit: -1
+      Processor Tree:
+        ListSink
+
+
+select count(*) from key_value_large a JOIN key_value_small b ON a.key = b.key
+1028

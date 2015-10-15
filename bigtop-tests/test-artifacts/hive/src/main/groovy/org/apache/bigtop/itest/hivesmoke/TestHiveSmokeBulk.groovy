@@ -40,6 +40,7 @@ public class TestHiveSmokeBulk {
     System.getProperty("org.apache.bigtop.itest.hivesmoke.TestHiveSmokeBulk.test_exclude");
   static Shell sh = new Shell("/bin/bash -s");
   static HiveBulkScriptExecutor scripts = new HiveBulkScriptExecutor(sh,"scripts/ql");
+  private static List<String> hadoop_271_testcases;
 
   private String test;
 
@@ -63,6 +64,7 @@ public class TestHiveSmokeBulk {
      hive_script <<= "drop table TEST_HIVE_NORMAL.${it};\n"; 
     }
     shHive.exec("${hive_script} quit; \n"); 
+    hadoop_271_testcases = ["union", "union_distinct", "smb_join"];
   }
 
   @BeforeClass
@@ -87,14 +89,17 @@ public class TestHiveSmokeBulk {
       tests = scripts.getScripts();
     }
     Map res = [:];
-    tests.each {
-      res[it] = ([it] as String[]);
-    };
+//    tests.each {
+//      res[it] = ([it] as String[]);
+//    };
+    res['smb_join'] = (['smb_join'] as String[])
     return res;
   }
 
   @Test
   public void testHiveBulk() {
+    org.junit.Assume.assumeTrue(System.getenv("HADOOP_VERSION") == '2.7.1' || 
+                        (System.getenv("HADOOP_VERSION") == '2.4.1' && !hadoop_271_testcases.contains(test)));
     scripts.runScript(test);
   }
 }
