@@ -65,12 +65,12 @@
     <repository>
       <id>internal</id>
       <name>Apache Release Distribution Repository</name>
-      <url>https://archiva.service.verticloud.com/archiva/repository/internal/</url>
+      <url>https://artifactory.service.altiscale.com/maven/</url>
     </repository>
     <snapshotRepository>
       <id>internal</id>
       <name>Apache Development Snapshot Repository</name>
-      <url>https://archiva.service.verticloud.com/archiva/repository/snapshots/</url>
+      <url>https://artifactory.service.altiscale.com/snapshots/</url>
     </snapshotRepository>
     <site>
       <id>apache.website</id>
