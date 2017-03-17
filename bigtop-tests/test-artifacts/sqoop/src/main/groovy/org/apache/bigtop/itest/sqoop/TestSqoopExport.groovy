@@ -40,7 +40,12 @@ import org.junit.experimental.categories.Category;
 import org.apache.bigtop.itest.interfaces.EssentialTests;
 import org.apache.bigtop.itest.interfaces.NormalTests;
 
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
+
+
 class TestSqoopExport {
+  static private Log LOG = LogFactory.getLog(TestSqoopExport.class)
   private static String mysql_user =
     System.getenv("MYSQL_USER");
   private static String mysql_password =
@@ -128,6 +133,7 @@ class TestSqoopExport {
 
   protected SqoopClient getClient() {
     String sqoopServerUrl = "$SQOOP_SERVER_URL".toString();
+    LOG.info("In getClient, sqoopServerUrl " + sqoopServerUrl)
     return new SqoopClient(sqoopServerUrl);
   }
 
@@ -138,6 +144,7 @@ class TestSqoopExport {
    */
   protected void fillConnectionForm(MConnection connection) {
     MFormList forms = connection.getConnectorPart();
+    LOG.info("In fillConnectionForm, processing values: connection string==" + "$SQOOP_CONNECTION_STRING".toString() + "connection.username==" + "$MYSQL_USER".toString()+ "connection.password==" + "$MYSQL_PASSWORD".toString())
     forms.getStringInput("connection.jdbcDriver").setValue("com.mysql.jdbc.Driver");
     forms.getStringInput("connection.connectionString").setValue("$SQOOP_CONNECTION_STRING".toString());
     forms.getStringInput("connection.username").setValue("$MYSQL_USER".toString());
@@ -165,8 +172,11 @@ class TestSqoopExport {
    * @param connection
    */
   protected void createConnection(MConnection connection) {
+    LOG.info("In createConnection")
     assertEquals(Status.FINE, getClient().createConnection(connection));
+    LOG.info("In createConnection, after assert")
     assertNotSame(MPersistableEntity.PERSISTANCE_ID_DEFAULT, connection.getPersistenceId());
+    LOG.info("In createConnection, after assert not same")
   }
 
   /**
@@ -183,23 +193,33 @@ class TestSqoopExport {
 
   protected void runSqoopClientExport(String tableName) {
     // Connection creation
+    LOG.info("In runSqoopClientExport, processing " + tableName)
     MConnection connection = getClient().newConnection(1L);
+    LOG.info("After connection")
     fillConnectionForm(connection);
+    LOG.info("After fillConnectionForm")
     createConnection(connection);
+    LOG.info("After createConnection")
 
     // Job creation
     MJob job = getClient().newJob(connection.getPersistenceId(), MJob.Type.EXPORT);
 
+    LOG.info("After MJob job, named:" + job.name)
     // Connector values
     MFormList forms = job.getConnectorPart();
+    LOG.info("MFormList forms")
     forms.getStringInput("table.schemaName").setValue("mysqltestdb");
     forms.getStringInput("table.tableName").setValue(tableName);
     // Framework values
     fillInputForm(job, "$INPUT".toString() + "/" + tableName);
+    LOG.info("After fillInputForm")
     createJob(job);
+    LOG.info("After createJob")
 
     MSubmission submission = getClient().startSubmission(job.getPersistenceId());
+    LOG.info("After submission")
     assertTrue(submission.getStatus().isRunning());
+    LOG.info("After ubmission.getStatus().isRunning()")
 
     // Wait until the job finish - this active waiting will be removed once
     // Sqoop client API will get blocking support.
@@ -212,6 +232,7 @@ class TestSqoopExport {
       }
       Thread.sleep(5000);
       submission = getClient().getSubmissionStatus(job.getPersistenceId());
+      LOG.info("submission says progress:" + submission.getProgress() + "status: " + submission.getStatus())
       if (!submission.getStatus().isRunning())
         break;
     }
