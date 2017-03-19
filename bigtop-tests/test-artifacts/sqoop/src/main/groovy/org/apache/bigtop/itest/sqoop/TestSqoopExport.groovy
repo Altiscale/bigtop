@@ -202,7 +202,14 @@ class TestSqoopExport {
     LOG.info("After createConnection")
 
     // Job creation
-    MJob job = getClient().newJob(connection.getPersistenceId(), MJob.Type.EXPORT);
+    //MJob job = getClient().newJob(connection.getPersistenceId(), MJob.Type.EXPORT);
+    SqoopClient sc = getClient(); //amit
+    for MConnection conn in sc.getConnections(){ //amit
+      LOG.info("retrieved connection name as:" + conn.name); //amit
+    }//amit
+
+    MJob job = sc.newJob(connection.getPersistenceId(), MJob.Type.EXPORT); //amit
+
 
     LOG.info("After MJob job, named:" + job.name)
     // Connector values
