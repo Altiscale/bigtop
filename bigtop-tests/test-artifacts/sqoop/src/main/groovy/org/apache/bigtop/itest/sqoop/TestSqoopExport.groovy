@@ -204,7 +204,7 @@ class TestSqoopExport {
     // Job creation
     //MJob job = getClient().newJob(connection.getPersistenceId(), MJob.Type.EXPORT);
     SqoopClient sc = getClient(); //amit
-    for MConnection conn in sc.getConnections(){ //amit
+    for (MConnection conn : sc.getConnections()){ //amit
       LOG.info("retrieved connection name as:" + conn.name); //amit
     }//amit
 
