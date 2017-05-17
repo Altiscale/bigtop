@@ -66,7 +66,7 @@ class PackageTestCommon {
     return ((summary ?: "") + ' ' + description).replaceAll(/\s+/,' ').replaceAll(/\s\.\s/,' ').replaceAll(/\s\.$/,' ').trim();
   }
 
-  private void checkMetadata(PackageInstance pkg, Map expected_metadata) {
+  void checkMetadata(PackageInstance pkg, Map expected_metadata) {
     boolean noSummary = (pm.type == "apt");
 
     expected_metadata.each { key, expected ->

@@ -77,7 +77,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.5.1</version>
+        <version>3.1</version>
         <configuration>
           <compilerId>groovy-eclipse-compiler</compilerId>
           <source>1.7</source>
@@ -92,7 +92,7 @@
           <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-eclipse-batch</artifactId>
-            <version>${groovy.version}-01</version>
+            <version>2.3.7-01</version>
           </dependency>
         </dependencies>
       </plugin>

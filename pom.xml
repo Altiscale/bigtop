@@ -50,7 +50,7 @@
     <itest-common.version>0.7.0-altiscale-SNAPSHOT</itest-common.version>
 
     <groovy.version>1.8.6</groovy.version>
-    <groovy-eclipse-compiler.version>2.7.0-01</groovy-eclipse-compiler.version>
+    <groovy-eclipse-compiler.version>2.9.1-01</groovy-eclipse-compiler.version>
     <gmaven.version>1.0</gmaven.version>
     <ant.version>1.8.2</ant.version>
     <commons.logging.version>1.1</commons.logging.version>
