@@ -118,14 +118,20 @@ class Shell {
       return "[]"
     } else {
         StringBuilder builder = new StringBuilder();
-	Iterator<?> iterator = list.iterator();
+        Iterator<?> iterator = list.iterator();
         builder.append(System.lineSeparator);
-	while(iterator.hasNext()) {
-	  builder.append(iterator.next())
-          if(iterator.hasNext()) 
+        while(iterator.hasNext()) {
+            String line = iterator.next()
+            // This is to prevent File Exists errors from HDFS
+            if (line.contains("put:") && line.contains(": File exists")) {
+                continue;
+            }
+
+            builder.append(line)
+            if(iterator.hasNext())
             builder.append(System.lineSeparator);
-	}
-	return builder.append(System.lineSeparator).toString();
+	    }
+	    return builder.append(System.lineSeparator).toString();
     }
   }
 }
