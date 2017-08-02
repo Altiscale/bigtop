@@ -2,7 +2,7 @@
  * Marker interface for fast-running tests.
  *
  * Priority of Test Categories is in the following order
- * EssentialTests > NormalTests > LongRunTests> PerformanceTests
+ * EssentialTests > NormalTests > LongRunTests > PerformanceTests
  * Tests are categorized at both method and class level. A category when defined
  * at class level means all the test methods in that test class fall under that
  * category. To avoid rerunning a test method which falls under a category at
@@ -18,14 +18,13 @@
 package org.apache.bigtop.itest.interfaces;
 
 
-public interface  LongRunTests {}
+public interface  OnlyHiveTests {}
 
 
+class TestDummyForJavadoc_NT {
 
-class TestDummyForJavadoc_OHT {
 
-
-        public void test_OHT() {
+        public void test_NT() {
 
         }
 
