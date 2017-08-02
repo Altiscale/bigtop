@@ -22,10 +22,10 @@ public interface  LongRunTests {}
 
 
 
-class TestDummyForJavadoc_OHT {
+class TestDummyForJavadoc_LT {
 
 
-        public void test_OHT() {
+        public void test_LT() {
 
         }
 

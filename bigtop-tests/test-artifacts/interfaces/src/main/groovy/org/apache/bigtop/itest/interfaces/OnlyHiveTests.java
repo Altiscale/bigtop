@@ -21,10 +21,10 @@ package org.apache.bigtop.itest.interfaces;
 public interface  OnlyHiveTests {}
 
 
-class TestDummyForJavadoc_NT {
+class TestDummyForJavadoc_OHT {
 
 
-        public void test_NT() {
+        public void test_OHT() {
 
         }
 
